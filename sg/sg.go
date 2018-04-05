@@ -1,4 +1,4 @@
-package sogou
+package sg
 
 import (
 	"encoding/json"
@@ -11,7 +11,7 @@ import (
 	"github.com/xwjdsh/fy"
 )
 
-type Sogou struct{}
+type sogou struct{}
 
 type result struct {
 	ErrorCode int `json:"errorCode"`
@@ -45,16 +45,13 @@ type result struct {
 }
 
 func init() {
-	fy.Translators = append(fy.Translators, &Sogou{})
+	fy.Translators = append(fy.Translators, &sogou{})
 }
 
-func (sg Sogou) Name() string {
-	return "sogou"
-}
-
-func (sg *Sogou) Translate(isChinese bool, text string) (string, error) {
+func (s *sogou) Translate(req *fy.Request) (resp *fy.Response) {
+	resp = &fy.Response{}
 	var from, to string
-	if isChinese {
+	if req.IsChinese {
 		from, to = "zh-CHS", "en"
 	} else {
 		from, to = "en", "zh-CHS"
@@ -62,28 +59,36 @@ func (sg *Sogou) Translate(isChinese bool, text string) (string, error) {
 	param := url.Values{
 		"from": {from},
 		"to":   {to},
-		"text": {text},
+		"text": {req.Text},
 	}
-	resp, err := http.PostForm("https://fanyi.sogou.com/reventondc/translate", param)
+	r, err := http.PostForm("https://fanyi.sogou.com/reventondc/translate", param)
 	if err != nil {
-		return "", errors.Wrap(err, "http.PostForm error")
+		resp.Err = errors.Wrap(err, "http.PostForm error")
+		return
 	}
-	defer resp.Body.Close()
+	defer r.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return "", errors.Wrap(err, "ioutil.ReadAll error")
-	}
-	r := &result{}
-	if err := json.Unmarshal(body, r); err != nil {
-		return "", errors.Wrap(err, "json.Unmarshal error")
-	}
-	if r.ErrorCode != 0 {
-		return "", fmt.Errorf("r.ErrorCode is %d", r.ErrorCode)
-	}
-	if r.Translate.ErrorCode != "0" {
-		return "", fmt.Errorf("r.Translate.ErrorCode is %s", r.Translate.ErrorCode)
+		resp.Err = errors.Wrap(err, "ioutil.ReadAll error")
+		return
 	}
 
-	return r.Translate.Dit, nil
+	rt := &result{}
+	if err := json.Unmarshal(body, rt); err != nil {
+		resp.Err = errors.Wrap(err, "json.Unmarshal error")
+		return
+	}
+	if rt.ErrorCode != 0 {
+		resp.Err = fmt.Errorf("rt.ErrorCode is %d", rt.ErrorCode)
+		return
+	}
+	if rt.Translate.ErrorCode != "0" {
+		resp.Err = fmt.Errorf("rt.Translate.ErrorCode is %s", rt.Translate.ErrorCode)
+		return
+	}
+
+	resp.Name = "sogou"
+	resp.Result = rt.Translate.Dit
+	return
 }

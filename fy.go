@@ -1,17 +1,25 @@
 package fy
 
 var (
-	Translators []Translator
-	ResultChan  chan *Result
+	Translators  []Translator
+	ResponseChan = make(chan *Response)
 )
 
-type Translator interface {
-	Name() string
-	Translate(bool, string) (string, error)
+type Request struct {
+	IsChinese bool
+	Text      string
 }
 
-type Result struct {
-	Name string
-	T    string
-	Err  error
+type Response struct {
+	Name   string
+	Result string
+	Err    error
+}
+
+type Translator interface {
+	Translate(*Request) *Response
+}
+
+func Handle(t Translator, r *Request) {
+	ResponseChan <- t.Translate(r)
 }
