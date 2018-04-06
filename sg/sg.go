@@ -3,7 +3,6 @@ package sg
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -50,6 +49,7 @@ func init() {
 
 func (s *sogou) Translate(req *fy.Request) (resp *fy.Response) {
 	resp = &fy.Response{}
+
 	var from, to string
 	if req.IsChinese {
 		from, to = "zh-CHS", "en"
@@ -61,21 +61,14 @@ func (s *sogou) Translate(req *fy.Request) (resp *fy.Response) {
 		"to":   {to},
 		"text": {req.Text},
 	}
-	r, err := http.PostForm("https://fanyi.sogou.com/reventondc/translate", param)
+	urlStr := "https://fanyi.sogou.com/reventondc/translate"
+	_, data, err := fy.ReadResp(http.PostForm(urlStr, param))
 	if err != nil {
-		resp.Err = errors.Wrap(err, "http.PostForm error")
+		resp.Err = errors.Wrap(err, "fy.HandleResp error")
 		return
 	}
-	defer r.Body.Close()
-
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		resp.Err = errors.Wrap(err, "ioutil.ReadAll error")
-		return
-	}
-
 	rt := &result{}
-	if err := json.Unmarshal(body, rt); err != nil {
+	if err := json.Unmarshal(data, rt); err != nil {
 		resp.Err = errors.Wrap(err, "json.Unmarshal error")
 		return
 	}

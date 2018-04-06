@@ -1,6 +1,13 @@
 package fy
 
-import "unicode"
+import (
+	"io"
+	"io/ioutil"
+	"net/http"
+	"unicode"
+
+	"github.com/pkg/errors"
+)
 
 var (
 	Logo = `
@@ -24,4 +31,45 @@ func IsChinese(str string) bool {
 		}
 	}
 	return false
+}
+
+func ReadResp(resp *http.Response, err error) (*http.Response, []byte, error) {
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "http request error")
+	}
+	defer resp.Body.Close()
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "ioutil.ReadAll error")
+	}
+	return resp, respBody, nil
+}
+
+func NotReadResp(resp *http.Response, err error) (*http.Response, error) {
+	if err != nil {
+		return nil, errors.Wrap(err, "http request error")
+	}
+	defer resp.Body.Close()
+	return resp, nil
+}
+
+func SendRequest(method, urlStr string, body io.Reader, f func(*http.Request) error) (*http.Response, []byte, error) {
+	req, err := http.NewRequest(method, urlStr, body)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "http.NewRequest error")
+	}
+	client := &http.Client{}
+	if f != nil {
+		if err := f(req); err != nil {
+			return nil, nil, errors.Wrap(err, "f error")
+		}
+	}
+	return ReadResp(client.Do(req))
+}
+
+func AddCookies(req *http.Request, cookies []*http.Cookie) *http.Request {
+	for _, cookie := range cookies {
+		req.AddCookie(cookie)
+	}
+	return req
 }

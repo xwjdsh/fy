@@ -1,10 +1,10 @@
 package bd
 
 import (
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/xwjdsh/fy"
@@ -24,26 +24,57 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 	} else {
 		from, to = "en", "zh"
 	}
+
+	r, err := fy.NotReadResp(http.Get("http://fanyi.baidu.com"))
+	if err != nil {
+		resp.Err = errors.Wrap(err, "fy.NotReadResp error")
+		return
+	}
+	cookies := r.Cookies()
+	for _, cookie := range cookies {
+		log.Println(cookie.Name, cookie.Value)
+
+	}
+
+	r, data, err := fy.SendRequest("GET", "http://fanyi.baidu.com", nil, func(req *http.Request) error {
+		fy.AddCookies(req, cookies)
+		return nil
+	})
+	if err != nil {
+		err = errors.Wrap(err, "fy.SendRequest error")
+		return
+	}
+
+	token, gtk, err := getTokenAndGtk(string(data))
+	if err != nil {
+		resp.Err = errors.Wrap(err, "getTokenAndGtk error")
+		return
+	}
+	sign, err := getSign(gtk, req.Text)
+	if err != nil {
+		resp.Err = errors.Wrap(err, "getSign error")
+		return
+	}
 	param := url.Values{
 		"from":              {from},
 		"to":                {to},
 		"query":             {req.Text},
+		"transtype":         {"realtime"},
 		"simple_means_flag": {"3"},
-		"sign":              {""},
-		"token":             {""},
+		"sign":              {sign},
+		"token":             {token},
 	}
-	r, err := http.PostForm("http://fanyi.baidu.com/v2transapi", param)
+	urlStr := "http://fanyi.baidu.com/v2transapi"
+	body := strings.NewReader(param.Encode())
+	_, data, err = fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+		fy.AddCookies(req, cookies)
+		return nil
+	})
 	if err != nil {
-		resp.Err = errors.Wrap(err, "http.PostForm error")
+		resp.Err = errors.Wrap(err, "fy.SendRequest error")
 		return
 	}
-	defer r.Body.Close()
-
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		resp.Err = errors.Wrap(err, "ioutil.ReadAll error")
-		return
-	}
-	log.Println(string(body))
+	resp.Result = string(data)
 	return
 }
