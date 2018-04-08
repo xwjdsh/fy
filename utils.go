@@ -8,7 +8,7 @@ import (
 	"unicode"
 )
 
-var (
+const (
 	Logo = `
 	    ____     
 	   / __/_  __
@@ -21,6 +21,7 @@ var (
 homepage: https://github.com/xwjdsh/fy
 
 `
+	CoffeeEmoji = "\u2615\ufe0f"
 )
 
 func IsChinese(str string) bool {

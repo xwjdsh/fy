@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
+	"github.com/fatih/color"
 	"github.com/xwjdsh/fy"
 	_ "github.com/xwjdsh/fy/bd"
 	_ "github.com/xwjdsh/fy/sg"
@@ -32,18 +32,20 @@ func main() {
 		IsChinese: isChinese,
 		Text:      text,
 	}
-
 	responseChan := make(chan *fy.Response)
 
-	wrap := func(t fy.Translator, r *fy.Request) {
-		responseChan <- t.Translate(r)
+	wrap := func(t fy.Translator) {
+		responseChan <- t.Translate(req)
 	}
-	for _, t := range fy.Translators {
-		go wrap(t, req)
+	for _, t := range fy.TranslatorMap {
+		go wrap(t)
 	}
 
-	for range fy.Translators {
+	fmt.Println()
+	for range fy.TranslatorMap {
 		resp := <-responseChan
-		log.Println(resp.Name, resp.Result)
+		color.Green("\t%s  [%s]\n\n", fy.CoffeeEmoji, resp.FullName)
+		color.Magenta("\t\t%s\n\n", resp.Result)
 	}
+	fmt.Println()
 }

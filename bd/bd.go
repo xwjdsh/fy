@@ -13,7 +13,11 @@ import (
 type baidu struct{}
 
 func init() {
-	fy.Translators = append(fy.Translators, &baidu{})
+	fy.Register(new(baidu))
+}
+
+func (b *baidu) Desc() (string, string, string) {
+	return "bd", "baidu", "http://fanyi.baidu.com/"
 }
 
 func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
@@ -76,7 +80,8 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 		return
 	}
 
-	resp.Name = "baidu"
+	_, fullname, _ := b.Desc()
+	resp.FullName = fullname
 	resp.Result = jr.Get("trans_result.data.0.dst").String()
 	return
 }

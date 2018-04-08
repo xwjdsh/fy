@@ -6,4 +6,3 @@ test:
 
 build:
 	go build ./cmd/fy
-

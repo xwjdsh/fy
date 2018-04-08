@@ -17,10 +17,14 @@ import (
 type youdao struct{}
 
 func init() {
-	fy.Translators = append(fy.Translators, &youdao{})
+	fy.Register(new(youdao))
 }
 
-func (s *youdao) Translate(req *fy.Request) (resp *fy.Response) {
+func (y *youdao) Desc() (string, string, string) {
+	return "yd", "youdao", "http://fanyi.youdao.com/"
+}
+
+func (y *youdao) Translate(req *fy.Request) (resp *fy.Response) {
 	resp = &fy.Response{}
 
 	var from, to string
@@ -75,7 +79,8 @@ func (s *youdao) Translate(req *fy.Request) (resp *fy.Response) {
 		return
 	}
 
-	resp.Name = "youdao"
+	_, fullname, _ := y.Desc()
+	resp.FullName = fullname
 	resp.Result = jr.Get("translateResult.0").String()
 	return
 }

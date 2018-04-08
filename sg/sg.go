@@ -12,7 +12,11 @@ import (
 type sogou struct{}
 
 func init() {
-	fy.Translators = append(fy.Translators, &sogou{})
+	fy.Register(new(sogou))
+}
+
+func (s *sogou) Desc() (string, string, string) {
+	return "sg", "sogou", "http://fanyi.sogou.com/"
 }
 
 func (s *sogou) Translate(req *fy.Request) (resp *fy.Response) {
@@ -46,7 +50,8 @@ func (s *sogou) Translate(req *fy.Request) (resp *fy.Response) {
 		resp.Err = fmt.Errorf("json result translate.errorCode is %s", errorCode)
 		return
 	}
-	resp.Name = "sogou"
+	_, fullname, _ := s.Desc()
+	resp.FullName = fullname
 	resp.Result = jr.Get("translate.dit").String()
 	return
 }
