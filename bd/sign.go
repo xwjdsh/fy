@@ -1,6 +1,7 @@
 package bd
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/pkg/errors"
@@ -52,18 +53,18 @@ const signJS = `
 func getSign(gtk, query string) (string, error) {
 	vm := otto.New()
 	if err := vm.Set("gtk", gtk); err != nil {
-		return "", errors.Wrap(err, "vm.Set gtk error")
+		return "", fmt.Errorf("vm.Set gtk error: %v\n", err)
 	}
 	if err := vm.Set("query", query); err != nil {
-		return "", errors.Wrap(err, "vm.Set query error")
+		return "", fmt.Errorf("vm.Set query error: %v\n", err)
 	}
 	value, err := vm.Run(signJS)
 	if err != nil {
-		return "", errors.Wrap(err, "vm.Run error")
+		return "", fmt.Errorf("vm.Run error: %v\n", err)
 	}
 	result, err := value.ToString()
 	if err != nil {
-		return "", errors.Wrap(err, "value.ToString error")
+		return "", fmt.Errorf("vlue.ToString error: %v\n", err)
 	}
 	return result, nil
 }

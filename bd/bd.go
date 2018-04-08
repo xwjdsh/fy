@@ -1,12 +1,12 @@
 package bd
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 
-	"github.com/pkg/errors"
+	"github.com/tidwall/gjson"
 	"github.com/xwjdsh/fy"
 )
 
@@ -25,44 +25,38 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 		from, to = "en", "zh"
 	}
 
-	r, err := fy.NotReadResp(http.Get("http://fanyi.baidu.com"))
+	r, err := fy.NotReadResp(http.Get("http://www.baidu.com"))
 	if err != nil {
-		resp.Err = errors.Wrap(err, "fy.NotReadResp error")
+		resp.Err = fmt.Errorf("fy.NotReadResp error: %v\n", err)
 		return
 	}
 	cookies := r.Cookies()
-	for _, cookie := range cookies {
-		log.Println(cookie.Name, cookie.Value)
-
-	}
 
 	r, data, err := fy.SendRequest("GET", "http://fanyi.baidu.com", nil, func(req *http.Request) error {
 		fy.AddCookies(req, cookies)
 		return nil
 	})
 	if err != nil {
-		err = errors.Wrap(err, "fy.SendRequest error")
+		err = fmt.Errorf("fy.SendRequest error: %v\n", err)
 		return
 	}
 
 	token, gtk, err := getTokenAndGtk(string(data))
 	if err != nil {
-		resp.Err = errors.Wrap(err, "getTokenAndGtk error")
+		resp.Err = fmt.Errorf("getTokenAndGtk error: %v\n", err)
 		return
 	}
 	sign, err := getSign(gtk, req.Text)
 	if err != nil {
-		resp.Err = errors.Wrap(err, "getSign error")
+		resp.Err = fmt.Errorf("getSign error: %v\n", err)
 		return
 	}
 	param := url.Values{
-		"from":              {from},
-		"to":                {to},
-		"query":             {req.Text},
-		"transtype":         {"realtime"},
-		"simple_means_flag": {"3"},
-		"sign":              {sign},
-		"token":             {token},
+		"from":  {from},
+		"to":    {to},
+		"query": {req.Text},
+		"sign":  {sign},
+		"token": {token},
 	}
 	urlStr := "http://fanyi.baidu.com/v2transapi"
 	body := strings.NewReader(param.Encode())
@@ -72,9 +66,17 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 		return nil
 	})
 	if err != nil {
-		resp.Err = errors.Wrap(err, "fy.SendRequest error")
+		resp.Err = fmt.Errorf("fy.SendRequest error: %v\n", err)
 		return
 	}
-	resp.Result = string(data)
+
+	jr := gjson.Parse(string(data))
+	if errorCode := jr.Get("error").Int(); errorCode != 0 {
+		resp.Err = fmt.Errorf("json result error is %d", errorCode)
+		return
+	}
+
+	resp.Name = "baidu"
+	resp.Result = jr.Get("trans_result.data.0.dst").String()
 	return
 }

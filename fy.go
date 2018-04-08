@@ -1,8 +1,7 @@
 package fy
 
 var (
-	Translators  []Translator
-	ResponseChan = make(chan *Response)
+	Translators []Translator
 )
 
 type Request struct {
@@ -18,8 +17,4 @@ type Response struct {
 
 type Translator interface {
 	Translate(*Request) *Response
-}
-
-func Handle(t Translator, r *Request) {
-	ResponseChan <- t.Translate(r)
 }

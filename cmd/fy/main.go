@@ -5,28 +5,18 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/xwjdsh/fy"
 	_ "github.com/xwjdsh/fy/bd"
 	_ "github.com/xwjdsh/fy/sg"
+	_ "github.com/xwjdsh/fy/yd"
 )
 
 var (
-	version string
+	version = "unknown"
 	isDebug = flag.Bool("d", false, "debug")
 )
-
-func init() {
-	if version == "" {
-		if output, err := exec.Command("git describe --tags").Output(); err == nil {
-			version = string(output)
-		} else {
-			version = "unknown"
-		}
-	}
-}
 
 func main() {
 	flag.Parse()
@@ -38,15 +28,22 @@ func main() {
 	text := strings.Join(args[1:], " ")
 	isChinese := fy.IsChinese(text)
 
+	req := &fy.Request{
+		IsChinese: isChinese,
+		Text:      text,
+	}
+
+	responseChan := make(chan *fy.Response)
+
+	wrap := func(t fy.Translator, r *fy.Request) {
+		responseChan <- t.Translate(r)
+	}
 	for _, t := range fy.Translators {
-		go fy.Handle(t, &fy.Request{
-			IsChinese: isChinese,
-			Text:      text,
-		})
+		go wrap(t, req)
 	}
 
 	for range fy.Translators {
-		resp := <-fy.ResponseChan
-		log.Println(resp)
+		resp := <-responseChan
+		log.Println(resp.Name, resp.Result)
 	}
 }
