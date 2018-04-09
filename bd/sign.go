@@ -50,7 +50,7 @@ const signJS = `
 		result = e(query)
 `
 
-func getSign(gtk, query string) (string, error) {
+func calSign(gtk, query string) (string, error) {
 	vm := otto.New()
 	if err := vm.Set("gtk", gtk); err != nil {
 		return "", fmt.Errorf("vm.Set gtk error: %v\n", err)

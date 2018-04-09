@@ -50,9 +50,9 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 		resp.Err = fmt.Errorf("getTokenAndGtk error: %v\n", err)
 		return
 	}
-	sign, err := getSign(gtk, req.Text)
+	sign, err := calSign(gtk, req.Text)
 	if err != nil {
-		resp.Err = fmt.Errorf("getSign error: %v\n", err)
+		resp.Err = fmt.Errorf("calSign error: %v\n", err)
 		return
 	}
 	param := url.Values{

@@ -9,6 +9,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/xwjdsh/fy"
 	_ "github.com/xwjdsh/fy/bd"
+	_ "github.com/xwjdsh/fy/gg"
 	_ "github.com/xwjdsh/fy/sg"
 	_ "github.com/xwjdsh/fy/yd"
 )
@@ -47,5 +48,4 @@ func main() {
 		color.Green("\t%s  [%s]\n\n", fy.CoffeeEmoji, resp.FullName)
 		color.Magenta("\t\t%s\n\n", resp.Result)
 	}
-	fmt.Println()
 }
