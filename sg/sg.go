@@ -20,7 +20,7 @@ func (s *sogou) Desc() (string, string, string) {
 }
 
 func (s *sogou) Translate(req *fy.Request) (resp *fy.Response) {
-	resp = &fy.Response{}
+	resp = fy.NewResp(s)
 
 	var from, to string
 	if req.IsChinese {
@@ -50,8 +50,6 @@ func (s *sogou) Translate(req *fy.Request) (resp *fy.Response) {
 		resp.Err = fmt.Errorf("json result translate.errorCode is %s", errorCode)
 		return
 	}
-	_, fullname, _ := s.Desc()
-	resp.FullName = fullname
 	resp.Result = jr.Get("translate.dit").String()
 	return
 }

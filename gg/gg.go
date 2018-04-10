@@ -2,7 +2,6 @@ package gg
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -21,7 +20,7 @@ func (s *google) Desc() (string, string, string) {
 }
 
 func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
-	resp = &fy.Response{}
+	resp = fy.NewResp(s)
 	_, data, err := fy.ReadResp(http.Get("https://translate.google.cn"))
 	if err != nil {
 		resp.Err = fmt.Errorf("fy.ReadResp error: %v\n", err)
@@ -47,22 +46,29 @@ func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
 	u, _ := url.Parse("https://translate.google.cn/translate_a/single")
 	param := u.Query()
 	param.Set("client", "t")
-	param.Set("hl", "zh-CN")
 	param.Set("sl", from)
+	param.Set("hl", "zh-CN")
 	param.Set("tl", to)
+	param["dt"] = []string{"at", "bd", "ex", "ld", "md", "qca", "rw", "rm", "ss", "t"}
 	param.Set("ie", "UTF-8")
 	param.Set("oe", "UTF-8")
+	param.Set("source", "btn")
+	param.Set("ssel", "3")
+	param.Set("tsel", "3")
+	param.Set("kc", "0")
 	param.Set("tk", tk)
 	param.Set("q", req.Text)
 	u.RawQuery = param.Encode()
 
-	_, data, err = fy.ReadResp(http.Get(u.String()))
+	_, data, err = fy.SendRequest("GET", u.String(), nil, func(r *http.Request) error {
+		r.Header.Set("User-Agent", "Paw/3.1.5 (Macintosh; OS X/10.13.2) GCDHTTPRequest")
+		return nil
+	})
 	if err != nil {
 		resp.Err = fmt.Errorf("fy.ReadResp error: %v\n")
 		return
 	}
 
-	log.Println(string(data))
 	jr := gjson.Parse(string(data))
 	//if errorCode := jr.Get("errorCode").Int(); errorCode != 0 {
 	//resp.Err = fmt.Errorf("json result errorCode is %d", errorCode)
@@ -73,8 +79,6 @@ func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
 	//resp.Err = fmt.Errorf("json result translate.errorCode is %s", errorCode)
 	//return
 	//}
-	_, fullname, _ := s.Desc()
-	resp.FullName = fullname
-	resp.Result = jr.Get("translate.dit").String()
+	resp.Result = jr.Get("..0.0.0.0").String()
 	return
 }

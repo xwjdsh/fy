@@ -21,7 +21,7 @@ func (b *baidu) Desc() (string, string, string) {
 }
 
 func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
-	resp = &fy.Response{}
+	resp = fy.NewResp(b)
 	var from, to string
 	if req.IsChinese {
 		from, to = "zh", "en"
@@ -80,8 +80,6 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 		return
 	}
 
-	_, fullname, _ := b.Desc()
-	resp.FullName = fullname
 	resp.Result = jr.Get("trans_result.data.0.dst").String()
 	return
 }

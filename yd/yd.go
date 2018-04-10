@@ -25,7 +25,7 @@ func (y *youdao) Desc() (string, string, string) {
 }
 
 func (y *youdao) Translate(req *fy.Request) (resp *fy.Response) {
-	resp = &fy.Response{}
+	resp = fy.NewResp(y)
 
 	var from, to string
 	if req.IsChinese {
@@ -79,8 +79,6 @@ func (y *youdao) Translate(req *fy.Request) (resp *fy.Response) {
 		return
 	}
 
-	_, fullname, _ := y.Desc()
-	resp.FullName = fullname
 	resp.Result = jr.Get("translateResult.0").String()
 	return
 }

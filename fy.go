@@ -21,6 +21,13 @@ func Register(t Translator) {
 	TranslatorMap[name] = t
 }
 
+func NewResp(t Translator) *Response {
+	_, fullname, _ := t.Desc()
+	return &Response{
+		FullName: fullname,
+	}
+}
+
 type Request struct {
 	IsChinese bool
 	Text      string
