@@ -53,18 +53,18 @@ const signJS = `
 func calSign(gtk, query string) (string, error) {
 	vm := otto.New()
 	if err := vm.Set("gtk", gtk); err != nil {
-		return "", fmt.Errorf("vm.Set gtk error: %v\n", err)
+		return "", fmt.Errorf("vm.Set gtk error: %v", err)
 	}
 	if err := vm.Set("query", query); err != nil {
-		return "", fmt.Errorf("vm.Set query error: %v\n", err)
+		return "", fmt.Errorf("vm.Set query error: %v", err)
 	}
 	value, err := vm.Run(signJS)
 	if err != nil {
-		return "", fmt.Errorf("vm.Run error: %v\n", err)
+		return "", fmt.Errorf("vm.Run error: %v", err)
 	}
 	result, err := value.ToString()
 	if err != nil {
-		return "", fmt.Errorf("vlue.ToString error: %v\n", err)
+		return "", fmt.Errorf("vlue.ToString error: %v", err)
 	}
 	return result, nil
 }

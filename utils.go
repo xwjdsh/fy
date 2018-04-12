@@ -35,19 +35,19 @@ func IsChinese(str string) bool {
 
 func ReadResp(resp *http.Response, err error) (*http.Response, []byte, error) {
 	if err != nil {
-		return nil, nil, fmt.Errorf("http request error: %v\n", err)
+		return nil, nil, fmt.Errorf("http request error: %v", err)
 	}
 	defer resp.Body.Close()
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, nil, fmt.Errorf("ioutil.ReadAll error: %v\n", err)
+		return nil, nil, fmt.Errorf("ioutil.ReadAll error: %v", err)
 	}
 	return resp, respBody, nil
 }
 
 func NotReadResp(resp *http.Response, err error) (*http.Response, error) {
 	if err != nil {
-		return nil, fmt.Errorf("http response error: %v\n", err)
+		return nil, fmt.Errorf("http response error: %v", err)
 	}
 	defer resp.Body.Close()
 	return resp, nil
@@ -56,12 +56,12 @@ func NotReadResp(resp *http.Response, err error) (*http.Response, error) {
 func SendRequest(method, urlStr string, body io.Reader, f func(*http.Request) error) (*http.Response, []byte, error) {
 	req, err := http.NewRequest(method, urlStr, body)
 	if err != nil {
-		return nil, nil, fmt.Errorf("http.NewRequest error: %v\n", err)
+		return nil, nil, fmt.Errorf("http.NewRequest error: %v", err)
 	}
 	client := &http.Client{}
 	if f != nil {
 		if err := f(req); err != nil {
-			return nil, nil, fmt.Errorf("f error: %v\n", err)
+			return nil, nil, fmt.Errorf("f error: %v", err)
 		}
 	}
 	return ReadResp(client.Do(req))

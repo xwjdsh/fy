@@ -57,14 +57,14 @@ const (
 func calTK(vq, query string) (string, error) {
 	vm := otto.New()
 	if err := vm.Set("Vq", vq); err != nil {
-		return "", fmt.Errorf("vm.Set Vq error: %v\n", err)
+		return "", fmt.Errorf("vm.Set Vq error: %v", err)
 	}
 	if err := vm.Set("query", query); err != nil {
-		return "", fmt.Errorf("vm.Set query error: %v\n", err)
+		return "", fmt.Errorf("vm.Set query error: %v", err)
 	}
 	value, err := vm.Run(tkJS)
 	if err != nil {
-		return "", fmt.Errorf("vm.Run error: %v\n", err)
+		return "", fmt.Errorf("vm.Run error: %v", err)
 	}
 	return value.String(), nil
 }
@@ -78,7 +78,7 @@ func getVq(dataStr string) (string, error) {
 	vm := otto.New()
 	value, err := vm.Run(vqResult[1])
 	if err != nil {
-		return "", fmt.Errorf("vm.Run error: %v\n", err)
+		return "", fmt.Errorf("vm.Run error: %v", err)
 	}
 	return value.String(), nil
 }

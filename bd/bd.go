@@ -31,7 +31,7 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 
 	r, err := fy.NotReadResp(http.Get("http://www.baidu.com"))
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.NotReadResp error: %v\n", err)
+		resp.Err = fmt.Errorf("fy.NotReadResp error: %v", err)
 		return
 	}
 	cookies := r.Cookies()
@@ -41,18 +41,18 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 		return nil
 	})
 	if err != nil {
-		err = fmt.Errorf("fy.SendRequest error: %v\n", err)
+		err = fmt.Errorf("fy.SendRequest error: %v", err)
 		return
 	}
 
 	token, gtk, err := getTokenAndGtk(string(data))
 	if err != nil {
-		resp.Err = fmt.Errorf("getTokenAndGtk error: %v\n", err)
+		resp.Err = fmt.Errorf("getTokenAndGtk error: %v", err)
 		return
 	}
 	sign, err := calSign(gtk, req.Text)
 	if err != nil {
-		resp.Err = fmt.Errorf("calSign error: %v\n", err)
+		resp.Err = fmt.Errorf("calSign error: %v", err)
 		return
 	}
 	param := url.Values{
@@ -70,7 +70,7 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 		return nil
 	})
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.SendRequest error: %v\n", err)
+		resp.Err = fmt.Errorf("fy.SendRequest error: %v", err)
 		return
 	}
 

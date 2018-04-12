@@ -36,7 +36,7 @@ func (y *youdao) Translate(req *fy.Request) (resp *fy.Response) {
 
 	r, err := fy.NotReadResp(http.Get("http://youdao.com"))
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.NotReadResp error: %v\n", err)
+		resp.Err = fmt.Errorf("fy.NotReadResp error: %v", err)
 		return
 	}
 	cookies := r.Cookies()
@@ -69,7 +69,7 @@ func (y *youdao) Translate(req *fy.Request) (resp *fy.Response) {
 		return nil
 	})
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.SendRequest error: %v\n")
+		resp.Err = fmt.Errorf("fy.SendRequest error: %v")
 		return
 	}
 

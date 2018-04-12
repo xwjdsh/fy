@@ -21,12 +21,12 @@ var (
 
 func main() {
 	flag.Parse()
-	args := os.Args
-	if len(args) == 1 {
+	args := flag.Args()
+	if len(os.Args) == 1 || len(args) == 0 {
 		fmt.Printf(fy.Logo, version)
 		return
 	}
-	text := strings.Join(args[1:], " ")
+	text := strings.Join(args, " ")
 	isChinese := fy.IsChinese(text)
 
 	req := &fy.Request{
@@ -45,6 +45,12 @@ func main() {
 	fmt.Println()
 	for range fy.TranslatorMap {
 		resp := <-responseChan
+		if resp.Err != nil {
+			if !*isDebug {
+				continue
+			}
+			resp.Result = resp.Err.Error()
+		}
 		color.Green("\t%s  [%s]\n\n", fy.CoffeeEmoji, resp.FullName)
 		color.Magenta("\t\t%s\n\n", resp.Result)
 	}

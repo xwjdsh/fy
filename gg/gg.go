@@ -23,17 +23,17 @@ func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(s)
 	_, data, err := fy.ReadResp(http.Get("https://translate.google.cn"))
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.ReadResp error: %v\n", err)
+		resp.Err = fmt.Errorf("fy.ReadResp error: %v", err)
 		return
 	}
 	vq, err := getVq(string(data))
 	if err != nil {
-		resp.Err = fmt.Errorf("getVq error: %v\n", err)
+		resp.Err = fmt.Errorf("getVq error: %v", err)
 		return
 	}
 	tk, err := calTK(vq, req.Text)
 	if err != nil {
-		resp.Err = fmt.Errorf("calTK error: %v\n", err)
+		resp.Err = fmt.Errorf("calTK error: %v", err)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
 	param.Set("sl", from)
 	param.Set("hl", "zh-CN")
 	param.Set("tl", to)
-	param["dt"] = []string{"at", "bd", "ex", "ld", "md", "qca", "rw", "rm", "ss", "t"}
+	param.Set("dt", "t")
 	param.Set("ie", "UTF-8")
 	param.Set("oe", "UTF-8")
 	param.Set("source", "btn")
@@ -65,20 +65,15 @@ func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
 		return nil
 	})
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.ReadResp error: %v\n")
+		resp.Err = fmt.Errorf("fy.ReadResp error: %v")
 		return
 	}
 
 	jr := gjson.Parse(string(data))
-	//if errorCode := jr.Get("errorCode").Int(); errorCode != 0 {
-	//resp.Err = fmt.Errorf("json result errorCode is %d", errorCode)
-	//return
-	//}
-
-	//if errorCode := jr.Get("translate.errorCode").String(); errorCode != "0" {
-	//resp.Err = fmt.Errorf("json result translate.errorCode is %s", errorCode)
-	//return
-	//}
+	if !jr.Get("..0.0.0").Exists() {
+		resp.Err = fmt.Errorf("cannot get google translate result")
+		return
+	}
 	resp.Result = jr.Get("..0.0.0.0").String()
 	return
 }
