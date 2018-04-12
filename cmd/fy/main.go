@@ -17,6 +17,8 @@ import (
 var (
 	version = "unknown"
 	isDebug = flag.Bool("d", false, "debug")
+	only    = flag.String("o", "", "only")
+	except  = flag.String("e", "", "except")
 )
 
 func main() {
@@ -29,6 +31,18 @@ func main() {
 	text := strings.Join(args, " ")
 	isChinese := fy.IsChinese(text)
 
+	if *only == "" {
+		*only = os.Getenv("FY_ONLY")
+	}
+	if *except == "" {
+		*except = os.Getenv("FY_EXCEPT")
+	}
+	translators, err := fy.Filter(*only, *except)
+	if err != nil {
+		color.Red("✗ %v", err)
+		return
+	}
+
 	req := &fy.Request{
 		IsChinese: isChinese,
 		Text:      text,
@@ -38,12 +52,12 @@ func main() {
 	wrap := func(t fy.Translator) {
 		responseChan <- t.Translate(req)
 	}
-	for _, t := range fy.TranslatorMap {
+	for _, t := range translators {
 		go wrap(t)
 	}
 
 	fmt.Println()
-	for range fy.TranslatorMap {
+	for range translators {
 		resp := <-responseChan
 		if resp.Err != nil {
 			if !*isDebug {

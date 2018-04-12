@@ -1,12 +1,14 @@
 package fy
 
 import (
+	"fmt"
 	"log"
+	"strings"
 	"sync"
 )
 
 var (
-	TranslatorMap = map[string]Translator{}
+	translatorMap = map[string]Translator{}
 	lock          sync.Mutex
 )
 
@@ -15,10 +17,44 @@ func Register(t Translator) {
 	defer lock.Unlock()
 
 	name, _, _ := t.Desc()
-	if _, ok := TranslatorMap[name]; ok {
+	if _, ok := translatorMap[name]; ok {
 		log.Printf("%s has been registered", name)
 	}
-	TranslatorMap[name] = t
+	translatorMap[name] = t
+}
+func Filter(only, except string) ([]Translator, error) {
+	lock.Lock()
+	defer lock.Unlock()
+
+	getMap := func(str string) (map[string]bool, error) {
+		m := map[string]bool{}
+		if str == "" {
+			return m, nil
+		}
+		for _, s := range strings.Split(str, ",") {
+			if _, ok := translatorMap[s]; !ok {
+				return nil, fmt.Errorf("the translator [%s] does not exist", s)
+			}
+			m[s] = true
+		}
+		return m, nil
+	}
+	onlyMap, err := getMap(only)
+	if err != nil {
+		return nil, err
+	}
+	exceptMap, err := getMap(except)
+	if err != nil {
+		return nil, err
+	}
+	result := []Translator{}
+	for k, v := range translatorMap {
+		if (len(onlyMap) > 0 && !onlyMap[k]) || (len(exceptMap) > 0 && exceptMap[k]) {
+			continue
+		}
+		result = append(result, v)
+	}
+	return result, nil
 }
 
 func NewResp(t Translator) *Response {
