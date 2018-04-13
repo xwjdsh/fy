@@ -16,22 +16,27 @@ import (
 
 var (
 	version = "unknown"
-	isDebug = flag.Bool("d", false, "debug")
-	only    = flag.String("o", "", "only")
-	except  = flag.String("e", "", "except")
+	isDebug = flag.Bool("d", false, "Debug mode, if an error occurs in the translation, the error message is displayed")
+	sources = flag.Bool("s", false, "Display translators information")
+	only    = flag.String("o", "", "Select only the translators, comma separated. eg 'bd,gg', it can also be set by the 'FY_ONLY' environment variable")
+	except  = flag.String("e", "", "Select translators except these, comma separated. eg 'bd,gg', it can also be set by the 'FY_EXCEPT' environment variable")
 )
 
 func main() {
 	flag.Parse()
-	args := flag.Args()
-	if len(os.Args) == 1 || len(args) == 0 {
-		color.Green(fy.Logo)
-		fmt.Printf(fy.Desc, version)
+	if *sources {
 		translators, _ := fy.Filter("", "")
+		fmt.Println()
 		for _, t := range translators {
 			fy.PrintSource(t.Desc())
 		}
 		fmt.Println()
+		return
+	}
+	args := flag.Args()
+	if len(os.Args) == 1 || len(args) == 0 {
+		color.Green(fy.Logo)
+		fmt.Printf(fy.Desc, version)
 		return
 	}
 	text := strings.Join(args, " ")

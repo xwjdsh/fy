@@ -27,7 +27,6 @@ const (
 	Desc = `
  version: %s
 homepage: https://github.com/xwjdsh/fy
- sources:
 `
 	CoffeeEmoji = "\u2615\ufe0f"
 )
