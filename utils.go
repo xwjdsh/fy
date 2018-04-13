@@ -6,9 +6,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"unicode"
+
+	"github.com/fatih/color"
 )
 
 const (
+	IconGood = "✔"
+	IconBad  = "✗"
+
 	Logo = `
 	    ____     
 	   / __/_  __
@@ -17,9 +22,12 @@ const (
 	/_/  \__, /  
 	    /____/   
 
+`
+
+	Desc = `
  version: %s
 homepage: https://github.com/xwjdsh/fy
-
+ sources:
 `
 	CoffeeEmoji = "\u2615\ufe0f"
 )
@@ -31,6 +39,10 @@ func IsChinese(str string) bool {
 		}
 	}
 	return false
+}
+
+func PrintSource(name, fullname, source string) {
+	fmt.Printf("\t %s %s [%s]\t%s\n", color.GreenString(IconGood), name, fullname, source)
 }
 
 func ReadResp(resp *http.Response, err error) (*http.Response, []byte, error) {

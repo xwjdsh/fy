@@ -25,7 +25,13 @@ func main() {
 	flag.Parse()
 	args := flag.Args()
 	if len(os.Args) == 1 || len(args) == 0 {
-		fmt.Printf(fy.Logo, version)
+		color.Green(fy.Logo)
+		fmt.Printf(fy.Desc, version)
+		translators, _ := fy.Filter("", "")
+		for _, t := range translators {
+			fy.PrintSource(t.Desc())
+		}
+		fmt.Println()
 		return
 	}
 	text := strings.Join(args, " ")
@@ -39,7 +45,7 @@ func main() {
 	}
 	translators, err := fy.Filter(*only, *except)
 	if err != nil {
-		color.Red("✗ %v", err)
+		color.Red("%s %v", fy.IconBad, err)
 		return
 	}
 
