@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/pkg/errors"
 	"github.com/robertkrimen/otto"
 )
 
@@ -72,14 +71,14 @@ func calSign(gtk, query string) (string, error) {
 func getTokenAndGtk(dataStr string) (token, gtk string, err error) {
 	tokenResult := regexp.MustCompile(`token: '(?P<token>\S+)',`).FindStringSubmatch(dataStr)
 	if len(tokenResult) != 2 {
-		err = errors.New("cannot get token")
+		err = fmt.Errorf("cannot get token")
 		return
 	}
 	token = tokenResult[1]
 
 	gtkResult := regexp.MustCompile(`window.gtk = '(?P<gtk>\S+)';`).FindStringSubmatch(dataStr)
 	if len(gtkResult) != 2 {
-		err = errors.New("cannot get gtk")
+		err = fmt.Errorf("cannot get gtk")
 		return
 	}
 	gtk = gtkResult[1]

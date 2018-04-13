@@ -1,7 +1,6 @@
 package gg
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 
@@ -73,7 +72,7 @@ func getVq(dataStr string) (string, error) {
 	//dataStr = `LOW_CONFIDENCE_THRESHOLD=-1;MAX_ALTERNATIVES_ROUNDTRIP_RESULTS=1;TKK=eval('((function(){var a\x3d1966732470;var b\x3d1714107181;return 423123+\x27.\x27+(a+b)})())');VERSION_LABEL = 'twsfe_w_20180402_RC00';`
 	vqResult := regexp.MustCompile(`TKK=(?P<vq>[\s\S]+);VERSION_LABEL`).FindStringSubmatch(dataStr)
 	if len(vqResult) != 2 {
-		return "", errors.New("cannot get vq")
+		return "", fmt.Errorf("cannot get vq")
 	}
 	vm := otto.New()
 	value, err := vm.Run(vqResult[1])
