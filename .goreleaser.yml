@@ -1,0 +1,29 @@
+# Build customization
+builds:
+  - binary: fy
+    main: ./cmd/fy
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+
+brew:
+  github:
+    owner: xwjdsh
+    name: homebrew-tap
+
+  commit_author:
+    name: Wendell Sun
+    email: iwendellsun@gmail.com
+
+  homepage: "https://github.com/xwjdsh/fy"
+  description: "A command-line translation tool"
+
+  install: |
+    bin.install "fy"
+
+release:
+  github:
+    owner: xwjdsh
+    name: fy
