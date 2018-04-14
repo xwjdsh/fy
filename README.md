@@ -22,7 +22,7 @@ go get -u github.com/xwjdsh/cmd/fy
 ```
 ### Docker
 ```
-alias fy=docker run -t --rm wendellsun/fy
+alias fy='docker run -t --rm wendellsun/fy'
 ```
 ### Manual
 Download it from [releases](https://github.com/xwjdsh/fy/releases), and extact it to your `PATH` directory.
