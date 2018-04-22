@@ -18,7 +18,7 @@ brew install xwjdsh/tap/fy
 ```
 ### Go
 ```
-go get -u github.com/xwjdsh/cmd/fy
+go get -u github.com/xwjdsh/fy/cmd/fy
 ```
 ### Docker
 ```
