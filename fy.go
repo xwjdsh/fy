@@ -18,7 +18,7 @@ func Register(t Translator) {
 
 	name, _, _ := t.Desc()
 	if _, ok := translatorMap[name]; ok {
-		log.Printf("%s has been registered", name)
+		log.Panicf("%s has been registered", name)
 	}
 	translatorMap[name] = t
 }

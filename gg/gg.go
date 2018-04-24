@@ -74,6 +74,10 @@ func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
 		resp.Err = fmt.Errorf("cannot get google translate result")
 		return
 	}
-	resp.Result = jr.Get("..0.0.0.0").String()
+	jsonResult := jr.Get("..0.0").Array()
+	for _, r := range jsonResult {
+		resp.Result += r.Get("..0.0").String()
+	}
+
 	return
 }
