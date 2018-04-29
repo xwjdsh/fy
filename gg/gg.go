@@ -16,7 +16,7 @@ func init() {
 }
 
 func (s *google) Desc() (string, string, string) {
-	return "gg", "google", "https://translate.google.com/"
+	return "gg", "google", "https://translate.google.cn/"
 }
 
 func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
