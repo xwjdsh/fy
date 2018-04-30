@@ -38,6 +38,8 @@ Usage of ./fy:
   -d    Debug mode, if an error occurs in the translation, the error message is displayed
   -e string
         Select translators except these, comma separated. eg 'bd,gg', it can also be set by the 'FY_EXCEPT' environment variable
+  -f string
+        file path
   -o string
         Select only the translators, comma separated. eg 'bd,gg', it can also be set by the 'FY_ONLY' environment variable
   -s    Display translators information
