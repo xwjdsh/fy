@@ -10,6 +10,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/xwjdsh/fy"
 	_ "github.com/xwjdsh/fy/bd"
+	_ "github.com/xwjdsh/fy/by"
 	_ "github.com/xwjdsh/fy/gg"
 	_ "github.com/xwjdsh/fy/qq"
 	_ "github.com/xwjdsh/fy/sg"
