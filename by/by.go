@@ -16,12 +16,12 @@ func init() {
 	fy.Register(new(bing))
 }
 
-func (s *bing) Desc() (string, string, string) {
+func (b *bing) Desc() (string, string, string) {
 	return "by", "bing", "https://cn.bing.com/translator/"
 }
 
-func (t *bing) Translate(req *fy.Request) (resp *fy.Response) {
-	resp = fy.NewResp(t)
+func (b *bing) Translate(req *fy.Request) (resp *fy.Response) {
+	resp = fy.NewResp(b)
 
 	var from, to string
 	if req.IsChinese {
@@ -47,6 +47,10 @@ func (t *bing) Translate(req *fy.Request) (resp *fy.Response) {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
 		return nil
 	})
+	if err != nil {
+		resp.Err = fmt.Errorf("fy.SendRequest error: %v", err)
+		return
+	}
 
 	jr := gjson.Parse(string(data))
 	if errorCode := jr.Get("statusCode").Int(); errorCode != 200 {

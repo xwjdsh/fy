@@ -36,7 +36,7 @@ func (s *sogou) Translate(req *fy.Request) (resp *fy.Response) {
 	urlStr := "https://fanyi.sogou.com/reventondc/translate"
 	_, data, err := fy.ReadResp(http.PostForm(urlStr, param))
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.ReadResp error: %v")
+		resp.Err = fmt.Errorf("fy.ReadResp error: %v", err)
 		return
 	}
 

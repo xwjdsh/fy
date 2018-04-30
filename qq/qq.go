@@ -17,7 +17,7 @@ func init() {
 	fy.Register(new(tencent))
 }
 
-func (s *tencent) Desc() (string, string, string) {
+func (t *tencent) Desc() (string, string, string) {
 	return "qq", "tencent", "http://fanyi.qq.com/"
 }
 
@@ -57,6 +57,10 @@ func (t *tencent) Translate(req *fy.Request) (resp *fy.Response) {
 		req.Header.Set("Cookie", fmt.Sprintf("qtv=%s; qtk=%s", qtv, qtk))
 		return nil
 	})
+	if err != nil {
+		resp.Err = fmt.Errorf("fy.SendRequest error: %v", err)
+		return
+	}
 
 	jr := gjson.Parse(string(data))
 	if !jr.Get("translate").Exists() {

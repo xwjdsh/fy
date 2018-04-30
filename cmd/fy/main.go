@@ -30,48 +30,22 @@ var (
 func main() {
 	flag.Parse()
 	if *sources {
-		translators, _ := fy.Filter("", "")
-		fmt.Println()
-		for _, t := range translators {
-			fy.PrintSource(t.Desc())
-		}
-		fmt.Println()
+		printSources()
 		return
 	}
 
-	var text string
-	if *filePath != "" {
-		data, err := ioutil.ReadFile(*filePath)
-		if err != nil {
-			color.Red("%s %v", fy.IconBad, err)
-			os.Exit(1)
-		}
-		text = string(data)
-	} else if !terminal.IsTerminal(0) {
-		data, err := ioutil.ReadAll(os.Stdin)
-		if err != nil {
-			color.Red("%s %v", fy.IconBad, err)
-			os.Exit(1)
-		}
-		text = string(data)
-	} else {
-		args := flag.Args()
-		if len(os.Args) == 1 || len(args) == 0 {
-			color.Green(fy.Logo)
-			fmt.Printf(fy.Desc, version)
-			return
-		}
-		text = strings.Join(args, " ")
+	text, err := getText()
+	if err != nil {
+		color.Red("%s %v", fy.IconBad, err)
+		os.Exit(1)
 	}
-
+	if text == "" {
+		color.Green(fy.Logo)
+		fmt.Printf(fy.Desc, version)
+	}
 	isChinese := fy.IsChinese(text)
-	if *only == "" {
-		*only = os.Getenv("FY_ONLY")
-	}
-	if *except == "" {
-		*except = os.Getenv("FY_EXCEPT")
-	}
-	translators, err := fy.Filter(*only, *except)
+
+	translators, err := getTranslators()
 	if err != nil {
 		color.Red("%s %v", fy.IconBad, err)
 		os.Exit(1)
@@ -102,4 +76,47 @@ func main() {
 		color.Green("\t%s  [%s]\n\n", fy.CoffeeEmoji, resp.FullName)
 		color.Magenta("\t\t%s\n\n", resp.Result)
 	}
+}
+
+func getText() (string, error) {
+	var text string
+	if *filePath != "" {
+		data, err := ioutil.ReadFile(*filePath)
+		if err != nil {
+			return "", err
+		}
+		text = string(data)
+	} else if !terminal.IsTerminal(0) {
+		data, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			return "", err
+		}
+		text = string(data)
+	} else {
+		args := flag.Args()
+		if len(os.Args) == 1 || len(args) == 0 {
+			return "", nil
+		}
+		text = strings.Join(args, " ")
+	}
+	return text, nil
+}
+
+func getTranslators() ([]fy.Translator, error) {
+	if *only == "" {
+		*only = os.Getenv("FY_ONLY")
+	}
+	if *except == "" {
+		*except = os.Getenv("FY_EXCEPT")
+	}
+	return fy.Filter(*only, *except)
+}
+
+func printSources() {
+	translators, _ := fy.Filter("", "")
+	fmt.Println()
+	for _, t := range translators {
+		fy.PrintSource(t.Desc())
+	}
+	fmt.Println()
 }

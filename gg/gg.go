@@ -65,7 +65,7 @@ func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
 		return nil
 	})
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.ReadResp error: %v")
+		resp.Err = fmt.Errorf("fy.SendRequest error: %v", err)
 		return
 	}
 

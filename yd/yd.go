@@ -69,7 +69,7 @@ func (y *youdao) Translate(req *fy.Request) (resp *fy.Response) {
 		return nil
 	})
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.SendRequest error: %v")
+		resp.Err = fmt.Errorf("fy.SendRequest error: %v", err)
 		return
 	}
 

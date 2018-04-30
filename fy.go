@@ -12,6 +12,7 @@ var (
 	lock          sync.Mutex
 )
 
+// Register register a translator
 func Register(t Translator) {
 	lock.Lock()
 	defer lock.Unlock()
@@ -22,6 +23,8 @@ func Register(t Translator) {
 	}
 	translatorMap[name] = t
 }
+
+// Filter filter translators
 func Filter(only, except string) ([]Translator, error) {
 	lock.Lock()
 	defer lock.Unlock()
@@ -57,6 +60,7 @@ func Filter(only, except string) ([]Translator, error) {
 	return result, nil
 }
 
+// NewResp new Response, set fullname
 func NewResp(t Translator) *Response {
 	_, fullname, _ := t.Desc()
 	return &Response{
@@ -64,18 +68,28 @@ func NewResp(t Translator) *Response {
 	}
 }
 
+// Request translate request
 type Request struct {
+	// IsChinese whether the text is Chinese
 	IsChinese bool
-	Text      string
+	// Text translate text
+	Text string
 }
 
+// Response translate response
 type Response struct {
+	// FullName translator fullname
 	FullName string
-	Result   string
-	Err      error
+	// Result translate result
+	Result string
+	// Err translate error
+	Err error
 }
 
+// Translator translator interface
 type Translator interface {
+	// Desc get translator info
 	Desc() (name string, fullname string, source string)
+	// Translate do translation task
 	Translate(*Request) *Response
 }
