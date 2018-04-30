@@ -42,6 +42,7 @@ func main() {
 	if text == "" {
 		color.Green(fy.Logo)
 		fmt.Printf(fy.Desc, version)
+		return
 	}
 	isChinese := fy.IsChinese(text)
 
