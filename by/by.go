@@ -17,7 +17,7 @@ func init() {
 }
 
 func (b *bing) Desc() (string, string, string) {
-	return "by", "bing", "https://cn.bing.com/translator/"
+	return "by", "bing", "https://www.bing.com/translator/"
 }
 
 func (b *bing) Translate(req *fy.Request) (resp *fy.Response) {
@@ -36,7 +36,7 @@ func (b *bing) Translate(req *fy.Request) (resp *fy.Response) {
 		"text": {req.Text},
 	}
 
-	urlStr := "https://cn.bing.com/ttranslate/"
+	urlStr := "https://www.bing.com/ttranslate/"
 	body := strings.NewReader(param.Encode())
 	_, data, err := fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
