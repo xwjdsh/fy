@@ -34,7 +34,7 @@ Download it from [releases](https://github.com/xwjdsh/fy/releases), and extact i
 
 ## Usage
 ```
-Usage of ./fy:
+Usage of fy:
   -d    Debug mode, if an error occurs in the translation, the error message is displayed
   -e string
         Select translators except these, comma separated. eg 'bd,gg', it can also be set by the 'FY_EXCEPT' environment variable
@@ -44,5 +44,31 @@ Usage of ./fy:
         Select only the translators, comma separated. eg 'bd,gg', it can also be set by the 'FY_ONLY' environment variable
   -s    Display translators information
 ```
+
+### Example
+```shell
+# display supported translators
+fy -s
+
+# simplest
+fy test
+
+# debug mode
+fy -d test
+
+# for file
+cat `test.txt` | fy
+fy < test.txt
+fy -f test.txt
+
+# select translators except these
+FY_EXCEPT='bd,sg' fy test
+fy -e 'bd,sg' test
+
+# select only the translators
+FY_ONLY='gg,qq' fy test
+fy -o 'gg,qq' test
+```
+
 ## Licence
 [MIT License](https://github.com/xwjdsh/fy/blob/master/LICENSE)
