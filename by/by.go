@@ -1,4 +1,4 @@
-package qq
+package by
 
 import (
 	"fmt"
@@ -29,11 +29,6 @@ func (b *bing) Translate(req *fy.Request) (resp *fy.Response) {
 	} else {
 		from, to = "en", "zh-CHS"
 	}
-	_, data, err := fy.SendRequest("GET", "https://cn.bing.com/translator/", nil, nil)
-	if err != nil {
-		err = fmt.Errorf("fy.SendRequest error: %v", err)
-		return
-	}
 
 	param := url.Values{
 		"from": {from},
@@ -41,10 +36,10 @@ func (b *bing) Translate(req *fy.Request) (resp *fy.Response) {
 		"text": {req.Text},
 	}
 
-	urlStr := "https://cn.bing.com/ttranslate?IG="
+	urlStr := "https://cn.bing.com/ttranslate/"
 	body := strings.NewReader(param.Encode())
-	_, data, err = fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+	_, data, err := fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		return nil
 	})
 	if err != nil {

@@ -1,4 +1,4 @@
-package qq
+package by
 
 import (
 	"reflect"
