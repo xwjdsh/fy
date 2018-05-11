@@ -12,10 +12,13 @@
 [![](https://images.microbadger.com/badges/image/wendellsun/fy.svg)](https://microbadger.com/images/wendellsun/fy)
 [![DUB](https://img.shields.io/dub/l/vibe-d.svg)](https://github.com/xwjdsh/fy/blob/master/LICENSE)
 
-fy is a command-line tool for translation.
+
+中文 | [English](https://github.com/xwjdsh/fy/blob/master/README_EN.md)
+
+`fy`是一个命令行下的翻译工具。
 
 ![](https://raw.githubusercontent.com/xwjdsh/fy/master/screenshot/fy.gif)
-## Installation
+## 安装
 ### Homebrew
 ```
 brew tap xwjdsh/tap
@@ -30,45 +33,45 @@ go get -u github.com/xwjdsh/fy/cmd/fy
 alias fy='docker run -t --rm wendellsun/fy'
 ```
 ### Manual
-Download it from [releases](https://github.com/xwjdsh/fy/releases), and extact it to your `PATH` directory.
+从 [releases](https://github.com/xwjdsh/fy/releases) 下载可执行文件并将其放到 PATH 环境变量对应的路径中。
 
-## Usage
+## 使用
 ```
 Usage of fy:
-  -d    Debug mode, if an error occurs in the translation, the error message is displayed
+  -d    调试模式，如果翻译过程出现错误，会将错误信息作为翻译结果展示
   -e string
-        Select translators except these, comma separated. eg 'bd,gg', it can also be set by the 'FY_EXCEPT' environment variable
+        选择除了指定以外的翻译者, 逗号分隔, 例如 'bd,gg', 也可以通过 'FY_EXCEPT' 环境变量来配置
   -f string
-        file path
+        翻译文件的路径
   -o string
-        Select only the translators, comma separated. eg 'bd,gg', it can also be set by the 'FY_ONLY' environment variable
-  -s    Display translators information
+        选择指定的翻译者, 逗号分隔, 例如 'bd,gg', 也可以通过 'FY_ONLY' 环境变量来配置
+  -s    显示支持的翻译者的信息
 ```
 
-### Example
+### 示例
 ```shell
-# display supported translators
+# 显示支持的翻译者的信息
 fy -s
 
-# simplest
+# 普通方式
 fy test
 
-# debug mode
+# 调试模式
 fy -d test
 
-# for file
+# 翻译文件
 cat `test.txt` | fy
 fy < test.txt
 fy -f test.txt
 
-# select translators except these
+# 选择除了指定以外的翻译者
 FY_EXCEPT='bd,sg' fy test
 fy -e 'bd,sg' test
 
-# select only the translators
+# 选择指定的翻译者
 FY_ONLY='gg,qq' fy test
 fy -o 'gg,qq' test
 ```
 
-## Licence
+## 协议
 [MIT License](https://github.com/xwjdsh/fy/blob/master/LICENSE)
