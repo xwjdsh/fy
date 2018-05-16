@@ -24,7 +24,7 @@ func (b *bing) Desc() (string, string, string) {
 	return "by", "bing", "https://www.bing.com/translator/"
 }
 
-func (b *bing) Translate(req *fy.Request) (resp *fy.Response) {
+func (b *bing) Translate(req fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(b)
 
 	detectUrl := "https://www.bing.com/tdetect/"

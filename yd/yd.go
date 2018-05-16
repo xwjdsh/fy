@@ -28,7 +28,7 @@ func (y *youdao) Desc() (string, string, string) {
 	return "yd", "youdao", "http://fanyi.youdao.com/"
 }
 
-func (y *youdao) Translate(req *fy.Request) (resp *fy.Response) {
+func (y *youdao) Translate(req fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(y)
 
 	r, err := fy.NotReadResp(http.Get("http://youdao.com"))

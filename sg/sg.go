@@ -23,7 +23,7 @@ func (s *sogou) Desc() (string, string, string) {
 	return "sg", "sogou", "http://fanyi.sogou.com/"
 }
 
-func (s *sogou) Translate(req *fy.Request) (resp *fy.Response) {
+func (s *sogou) Translate(req fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(s)
 
 	if tl, ok := langConvertMap[req.TargetLang]; ok {

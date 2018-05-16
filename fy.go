@@ -102,5 +102,5 @@ type Translator interface {
 	// Desc get translator info
 	Desc() (name string, fullname string, source string)
 	// Translate do translation task
-	Translate(*Request) *Response
+	Translate(Request) *Response
 }

@@ -26,7 +26,7 @@ func (t *tencent) Desc() (string, string, string) {
 	return "qq", "tencent", "http://fanyi.qq.com/"
 }
 
-func (t *tencent) Translate(req *fy.Request) (resp *fy.Response) {
+func (t *tencent) Translate(req fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(t)
 
 	_, data, err := fy.SendRequest("GET", "http://fanyi.qq.com", nil, nil)

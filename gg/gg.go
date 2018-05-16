@@ -19,7 +19,7 @@ func (s *google) Desc() (string, string, string) {
 	return "gg", "google", "https://translate.google.cn/"
 }
 
-func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
+func (s *google) Translate(req fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(s)
 	_, data, err := fy.ReadResp(http.Get("https://translate.google.cn"))
 	if err != nil {
