@@ -2,7 +2,7 @@ run:
 	go run ./cmd/fy/main.go $(t)
 
 test:
-	make run t=test
+	go test . ./bd ./by ./gg ./qq ./sg ./yd
 
 build:
 	go build ./cmd/fy
