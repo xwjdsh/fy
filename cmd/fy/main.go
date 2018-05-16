@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
 	"github.com/xwjdsh/fy"
 	_ "github.com/xwjdsh/fy/bd"
@@ -41,9 +42,16 @@ func main() {
 		os.Exit(1)
 	}
 	if text == "" {
-		color.Green(fy.Logo)
-		fmt.Printf(fy.Desc, version)
-		return
+		text, err = clipboard.ReadAll()
+		if err != nil {
+			color.Red("%s %v", fy.IconBad, fmt.Errorf("access clipboard error: %v", err))
+			os.Exit(1)
+		}
+		if text == "" {
+			color.Green(fy.Logo)
+			fmt.Printf(fy.Desc, version)
+			return
+		}
 	}
 	isChinese := fy.IsChinese(text)
 	if *targetLang == "" {
