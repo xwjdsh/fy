@@ -15,6 +15,10 @@ func init() {
 	fy.Register(new(sogou))
 }
 
+var langConvertMap = map[string]string{
+	fy.Chinese: "zh-CHS",
+}
+
 func (s *sogou) Desc() (string, string, string) {
 	return "sg", "sogou", "http://fanyi.sogou.com/"
 }
@@ -22,15 +26,12 @@ func (s *sogou) Desc() (string, string, string) {
 func (s *sogou) Translate(req *fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(s)
 
-	var from, to string
-	if req.IsChinese {
-		from, to = "zh-CHS", "en"
-	} else {
-		from, to = "en", "zh-CHS"
+	if tl, ok := langConvertMap[req.TargetLang]; ok {
+		req.TargetLang = tl
 	}
 	param := url.Values{
-		"from": {from},
-		"to":   {to},
+		"from": {"auto"},
+		"to":   {req.TargetLang},
 		"text": {req.Text},
 	}
 	urlStr := "https://fanyi.sogou.com/reventondc/translate"

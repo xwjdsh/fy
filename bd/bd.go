@@ -12,6 +12,14 @@ import (
 
 type baidu struct{}
 
+var langConvertMap = map[string]string{
+	fy.Chinese:  "zh",
+	fy.Korean:   "kor",
+	fy.Japanese: "jp",
+	fy.French:   "fra",
+	fy.Spanish:  "spa",
+}
+
 func init() {
 	fy.Register(new(baidu))
 }
@@ -22,12 +30,6 @@ func (b *baidu) Desc() (string, string, string) {
 
 func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(b)
-	var from, to string
-	if req.IsChinese {
-		from, to = "zh", "en"
-	} else {
-		from, to = "en", "zh"
-	}
 
 	r, err := fy.NotReadResp(http.Get("http://www.baidu.com"))
 	if err != nil {
@@ -36,7 +38,22 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 	}
 	cookies := r.Cookies()
 
-	r, data, err := fy.SendRequest("GET", "http://fanyi.baidu.com", nil, func(req *http.Request) error {
+	param := url.Values{"query": {req.Text}}
+	detectUrl := "http://fanyi.baidu.com/langdetect"
+	body := strings.NewReader(param.Encode())
+	r, data, err := fy.SendRequest("POST", detectUrl, body, func(req *http.Request) error {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+		return nil
+	})
+
+	jr := gjson.Parse(string(data))
+	if errorCode := jr.Get("error").Int(); errorCode != 0 {
+		resp.Err = fmt.Errorf("langdetect json result error is %d", errorCode)
+		return
+	}
+	from := jr.Get("lan").String()
+
+	r, data, err = fy.SendRequest("GET", "http://fanyi.baidu.com", nil, func(req *http.Request) error {
 		fy.AddCookies(req, cookies)
 		return nil
 	})
@@ -55,15 +72,18 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 		resp.Err = fmt.Errorf("calSign error: %v", err)
 		return
 	}
-	param := url.Values{
+	if tl, ok := langConvertMap[req.TargetLang]; ok {
+		req.TargetLang = tl
+	}
+	param = url.Values{
 		"from":  {from},
-		"to":    {to},
+		"to":    {req.TargetLang},
 		"query": {req.Text},
 		"sign":  {sign},
 		"token": {token},
 	}
 	urlStr := "http://fanyi.baidu.com/v2transapi"
-	body := strings.NewReader(param.Encode())
+	body = strings.NewReader(param.Encode())
 	_, data, err = fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
 		fy.AddCookies(req, cookies)
@@ -74,7 +94,7 @@ func (b *baidu) Translate(req *fy.Request) (resp *fy.Response) {
 		return
 	}
 
-	jr := gjson.Parse(string(data))
+	jr = gjson.Parse(string(data))
 	if errorCode := jr.Get("error").Int(); errorCode != 0 {
 		resp.Err = fmt.Errorf("json result error is %d", errorCode)
 		return

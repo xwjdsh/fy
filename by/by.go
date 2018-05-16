@@ -12,6 +12,10 @@ import (
 
 type bing struct{}
 
+var langConvertMap = map[string]string{
+	fy.Chinese: "zh-CHS",
+}
+
 func init() {
 	fy.Register(new(bing))
 }
@@ -23,22 +27,27 @@ func (b *bing) Desc() (string, string, string) {
 func (b *bing) Translate(req *fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(b)
 
-	var from, to string
-	if req.IsChinese {
-		from, to = "zh-CHS", "en"
-	} else {
-		from, to = "en", "zh-CHS"
-	}
+	detectUrl := "https://www.bing.com/tdetect/"
+	param := url.Values{"text": {req.Text}}
+	body := strings.NewReader(param.Encode())
+	_, data, err := fy.SendRequest("POST", detectUrl, body, func(req *http.Request) error {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		return nil
+	})
+	from := string(data)
 
-	param := url.Values{
+	if tl, ok := langConvertMap[req.TargetLang]; ok {
+		req.TargetLang = tl
+	}
+	param = url.Values{
 		"from": {from},
-		"to":   {to},
+		"to":   {req.TargetLang},
 		"text": {req.Text},
 	}
 
 	urlStr := "https://www.bing.com/ttranslate/"
-	body := strings.NewReader(param.Encode())
-	_, data, err := fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
+	body = strings.NewReader(param.Encode())
+	_, data, err = fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		return nil
 	})

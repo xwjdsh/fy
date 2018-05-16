@@ -7,6 +7,17 @@ import (
 	"sync"
 )
 
+const (
+	Chinese  = "zh-CN"
+	English  = "en"
+	Russian  = "ru"
+	Japanese = "ja"
+	German   = "de"
+	French   = "fr"
+	Korean   = "ko"
+	Spanish  = "es"
+)
+
 var (
 	translatorMap = map[string]Translator{}
 	lock          sync.Mutex
@@ -70,8 +81,8 @@ func NewResp(t Translator) *Response {
 
 // Request translate request
 type Request struct {
-	// IsChinese whether the text is Chinese
-	IsChinese bool
+	// The target language of translation
+	TargetLang string
 	// Text translate text
 	Text string
 }

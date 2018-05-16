@@ -16,6 +16,10 @@ import (
 
 type youdao struct{}
 
+var langConvertMap = map[string]string{
+	fy.Chinese: "zh-CHS",
+}
+
 func init() {
 	fy.Register(new(youdao))
 }
@@ -26,13 +30,6 @@ func (y *youdao) Desc() (string, string, string) {
 
 func (y *youdao) Translate(req *fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(y)
-
-	var from, to string
-	if req.IsChinese {
-		from, to = "zh-CHS", "en"
-	} else {
-		from, to = "en", "zh-CHS"
-	}
 
 	r, err := fy.NotReadResp(http.Get("http://youdao.com"))
 	if err != nil {
@@ -49,9 +46,13 @@ func (y *youdao) Translate(req *fy.Request) (resp *fy.Response) {
 	h := md5.New()
 	h.Write([]byte("fanyideskweb" + req.Text + salt + `ebSeFb%=XZ%T[KZ)c(sy!`))
 	sign := hex.EncodeToString(h.Sum(nil))
+
+	if tl, ok := langConvertMap[req.TargetLang]; ok {
+		req.TargetLang = tl
+	}
 	param := url.Values{
-		"from":    {from},
-		"to":      {to},
+		"from":    {"AUTO"},
+		"to":      {req.TargetLang},
 		"i":       {req.Text},
 		"client":  {"fanyideskweb"},
 		"salt":    {salt},
