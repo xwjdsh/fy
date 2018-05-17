@@ -13,6 +13,12 @@ import (
 
 type tencent struct{}
 
+var langConvertMap = map[string]string{
+	fy.Chinese:  "zh",
+	fy.Japanese: "jp",
+	fy.Korean:   "kr",
+}
+
 func init() {
 	fy.Register(new(tencent))
 }
@@ -21,15 +27,9 @@ func (t *tencent) Desc() (string, string, string) {
 	return "qq", "tencent", "http://fanyi.qq.com/"
 }
 
-func (t *tencent) Translate(req *fy.Request) (resp *fy.Response) {
+func (t *tencent) Translate(req fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(t)
 
-	var from, to string
-	if req.IsChinese {
-		from, to = "zh", "en"
-	} else {
-		from, to = "en", "zh"
-	}
 	_, data, err := fy.SendRequest("GET", "http://fanyi.qq.com", nil, nil)
 	if err != nil {
 		err = fmt.Errorf("fy.SendRequest error: %v", err)
@@ -42,9 +42,12 @@ func (t *tencent) Translate(req *fy.Request) (resp *fy.Response) {
 		return
 	}
 
+	if tl, ok := langConvertMap[req.TargetLang]; ok {
+		req.TargetLang = tl
+	}
 	param := url.Values{
-		"source":     {from},
-		"target":     {to},
+		"source":     {"auto"},
+		"target":     {req.TargetLang},
 		"sourceText": {req.Text},
 	}
 

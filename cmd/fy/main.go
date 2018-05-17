@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
 	"github.com/xwjdsh/fy"
 	_ "github.com/xwjdsh/fy/bd"
@@ -19,12 +20,13 @@ import (
 )
 
 var (
-	version  = "unknown"
-	isDebug  = flag.Bool("d", false, "Debug mode, if an error occurs in the translation, the error message is displayed")
-	sources  = flag.Bool("s", false, "Display translators information")
-	filePath = flag.String("f", "", "file path")
-	only     = flag.String("o", "", "Select only the translators, comma separated. eg 'bd,gg', it can also be set by the 'FY_ONLY' environment variable")
-	except   = flag.String("e", "", "Select translators except these, comma separated. eg 'bd,gg', it can also be set by the 'FY_EXCEPT' environment variable")
+	version    = "unknown"
+	isDebug    = flag.Bool("d", false, "Debug mode, if an error occurs in the translation, the error message is displayed")
+	sources    = flag.Bool("s", false, "Display translators information")
+	filePath   = flag.String("f", "", "file path")
+	only       = flag.String("o", "", "Select only the translators, comma separated. eg 'bd,gg', it can also be set by the 'FY_ONLY' environment variable")
+	except     = flag.String("e", "", "Select translators except these, comma separated. eg 'bd,gg', it can also be set by the 'FY_EXCEPT' environment variable")
+	targetLang = flag.String("t", "", "The target language of translation")
 )
 
 func main() {
@@ -45,6 +47,9 @@ func main() {
 		return
 	}
 	isChinese := fy.IsChinese(text)
+	if *targetLang == "" {
+		*targetLang = getTargetLang(isChinese)
+	}
 
 	translators, err := getTranslators()
 	if err != nil {
@@ -52,9 +57,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	req := &fy.Request{
-		IsChinese: isChinese,
-		Text:      text,
+	req := fy.Request{
+		TargetLang: *targetLang,
+		Text:       text,
 	}
 	responseChan := make(chan *fy.Response)
 
@@ -100,7 +105,34 @@ func getText() (string, error) {
 		}
 		text = strings.Join(args, " ")
 	}
+	if text == "" {
+		var err error
+		text, err = clipboard.ReadAll()
+		if err != nil {
+			return "", err
+		}
+	}
 	return text, nil
+}
+
+func getTargetLang(isChinese bool) string {
+	target := os.Getenv("FY_TO")
+	if target != "" {
+		return target
+	}
+	if isChinese {
+		target = os.Getenv("FY_CN_TO")
+	} else {
+		target = os.Getenv("FY_NOT_CN_TO")
+	}
+	if target == "" {
+		if isChinese {
+			target = "en"
+		} else {
+			target = "zh-CN"
+		}
+	}
+	return target
 }
 
 func getTranslators() ([]fy.Translator, error) {

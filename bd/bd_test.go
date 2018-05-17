@@ -9,7 +9,7 @@ import (
 
 func Test_baidu_Translate(t *testing.T) {
 	type args struct {
-		req *fy.Request
+		req fy.Request
 	}
 	tests := []struct {
 		name     string
@@ -21,9 +21,9 @@ func Test_baidu_Translate(t *testing.T) {
 			name: "text = test",
 			b:    &baidu{},
 			args: args{
-				req: &fy.Request{
-					IsChinese: false,
-					Text:      "test",
+				req: fy.Request{
+					TargetLang: "zh-CN",
+					Text:       "test",
 				},
 			},
 			wantResp: &fy.Response{
@@ -36,9 +36,9 @@ func Test_baidu_Translate(t *testing.T) {
 			name: "text = 测试",
 			b:    &baidu{},
 			args: args{
-				req: &fy.Request{
-					IsChinese: true,
-					Text:      "测试",
+				req: fy.Request{
+					TargetLang: "en",
+					Text:       "测试",
 				},
 			},
 			wantResp: &fy.Response{

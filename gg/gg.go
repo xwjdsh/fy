@@ -19,7 +19,7 @@ func (s *google) Desc() (string, string, string) {
 	return "gg", "google", "https://translate.google.cn/"
 }
 
-func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
+func (s *google) Translate(req fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(s)
 	_, data, err := fy.ReadResp(http.Get("https://translate.google.cn"))
 	if err != nil {
@@ -37,18 +37,12 @@ func (s *google) Translate(req *fy.Request) (resp *fy.Response) {
 		return
 	}
 
-	var from, to string
-	if req.IsChinese {
-		from, to = "zh-CN", "en"
-	} else {
-		from, to = "en", "zh-CN"
-	}
 	u, _ := url.Parse("https://translate.google.cn/translate_a/single")
 	param := u.Query()
 	param.Set("client", "t")
-	param.Set("sl", from)
+	param.Set("sl", "auto")
 	param.Set("hl", "zh-CN")
-	param.Set("tl", to)
+	param.Set("tl", req.TargetLang)
 	param.Set("dt", "t")
 	param.Set("ie", "UTF-8")
 	param.Set("oe", "UTF-8")

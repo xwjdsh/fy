@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/atotto/clipboard"
+  packages = ["."]
+  revision = "5e2c7bddca04488284428a201e4a15615f7a5074"
+
+[[projects]]
   name = "github.com/fatih/color"
   packages = ["."]
   revision = "507f6050b8568533fb3f5504de8e5205fa62a114"
@@ -72,6 +78,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "61ebe8bfbde6234048ee65f620177273688c75c5e9778ac6dfb736a79a070041"
+  inputs-digest = "050a2cbabb77c591b2fbf377a0f314454c50011d29ae26429488038c65663629"
   solver-name = "gps-cdcl"
   solver-version = 1
