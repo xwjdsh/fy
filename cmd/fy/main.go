@@ -42,16 +42,9 @@ func main() {
 		os.Exit(1)
 	}
 	if text == "" {
-		text, err = clipboard.ReadAll()
-		if err != nil {
-			color.Red("%s %v", fy.IconBad, fmt.Errorf("access clipboard error: %v", err))
-			os.Exit(1)
-		}
-		if text == "" {
-			color.Green(fy.Logo)
-			fmt.Printf(fy.Desc, version)
-			return
-		}
+		color.Green(fy.Logo)
+		fmt.Printf(fy.Desc, version)
+		return
 	}
 	isChinese := fy.IsChinese(text)
 	if *targetLang == "" {
@@ -111,6 +104,13 @@ func getText() (string, error) {
 			return "", nil
 		}
 		text = strings.Join(args, " ")
+	}
+	if text == "" {
+		var err error
+		text, err = clipboard.ReadAll()
+		if err != nil {
+			return "", err
+		}
 	}
 	return text, nil
 }
