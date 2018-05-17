@@ -101,16 +101,9 @@ func getText() (string, error) {
 	} else {
 		args := flag.Args()
 		if len(os.Args) == 1 || len(args) == 0 {
-			return "", nil
+			return clipboard.ReadAll()
 		}
 		text = strings.Join(args, " ")
-	}
-	if text == "" {
-		var err error
-		text, err = clipboard.ReadAll()
-		if err != nil {
-			return "", err
-		}
 	}
 	return text, nil
 }
