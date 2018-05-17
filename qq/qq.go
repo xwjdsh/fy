@@ -16,6 +16,7 @@ type tencent struct{}
 var langConvertMap = map[string]string{
 	fy.Chinese:  "zh",
 	fy.Japanese: "jp",
+	fy.Korean:   "kr",
 }
 
 func init() {
