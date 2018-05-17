@@ -45,18 +45,45 @@ Usage of fy:
   -o string
         Select only the translators, comma separated. eg 'bd,gg', it can also be set by the 'FY_ONLY' environment variable
   -s    Display translators information
+  -t string
+        The target language of translation
 ```
+
+### Language Mapping
+
+| Shorthand | Language | 
+| - | :-: | 
+| zh-CN | Chinese | 
+| en | English | 
+| ru | Russian | 
+| ja | Japanese | 
+| de | German | 
+| fr | French | 
+| ko | Korean | 
+| es | Spanish | 
 
 ### Example
 ```shell
 # display supported translators
 fy -s
 
+# if there are no params, the clipboard will be accessed
+fy
+
 # simplest
 fy test
 
 # debug mode
 fy -d test
+
+# specify the language
+fy -t ja 测试翻译为日语
+
+# target language for Chinese，default is English
+FY_CN_TO=ko fy 翻译为韩语
+
+# target language for Non-Chinese，default is simplified Chinese
+FY_NOT_CN_TO=en fy 중국어로 번역
 
 # for file
 cat `test.txt` | fy
