@@ -6,14 +6,14 @@
         /_/  \__, /
             /____/
 ```
+中文 | [English](https://github.com/xwjdsh/fy/blob/master/README_EN.md)
+
+[![Release](https://img.shields.io/github/release/xwjdsh/fy.svg?style=flat-square)](https://github.com/xwjdsh/fy/releases/latest)
 [![Build Status](https://travis-ci.org/xwjdsh/fy.svg?branch=master)](https://travis-ci.org/xwjdsh/fy)
 [![Go Report Card](https://goreportcard.com/badge/github.com/xwjdsh/fy)](https://goreportcard.com/report/github.com/xwjdsh/fy)
 [![GoDoc](https://godoc.org/github.com/xwjdsh/fy?status.svg)](https://godoc.org/github.com/xwjdsh/fy)
 [![](https://images.microbadger.com/badges/image/wendellsun/fy.svg)](https://microbadger.com/images/wendellsun/fy)
 [![DUB](https://img.shields.io/dub/l/vibe-d.svg)](https://github.com/xwjdsh/fy/blob/master/LICENSE)
-
-
-中文 | [English](https://github.com/xwjdsh/fy/blob/master/README_EN.md)
 
 `fy`是一个命令行下的翻译工具。
 
