@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/tidwall/gjson"
+
 	"github.com/xwjdsh/fy"
 )
 
@@ -24,13 +25,13 @@ func init() {
 }
 
 func (t *tencent) Desc() (string, string, string) {
-	return "qq", "tencent", "http://fanyi.qq.com/"
+	return "qq", "tencent", "https://fanyi.qq.com/"
 }
 
 func (t *tencent) Translate(req fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(t)
 
-	_, data, err := fy.SendRequest("GET", "http://fanyi.qq.com", nil, nil)
+	_, data, err := fy.SendRequest("GET", "https://fanyi.qq.com", nil, nil)
 	if err != nil {
 		err = fmt.Errorf("fy.SendRequest error: %v", err)
 		return
@@ -51,7 +52,7 @@ func (t *tencent) Translate(req fy.Request) (resp *fy.Response) {
 		"sourceText": {req.Text},
 	}
 
-	urlStr := "http://fanyi.qq.com/api/translate"
+	urlStr := "https://fanyi.qq.com/api/translate"
 	body := strings.NewReader(param.Encode())
 	_, data, err = fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Origin", "http://fanyi.qq.com")
