@@ -7,8 +7,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/atotto/clipboard"
-	"github.com/fatih/color"
 	"github.com/xwjdsh/fy"
 	_ "github.com/xwjdsh/fy/bd"
 	_ "github.com/xwjdsh/fy/by"
@@ -16,6 +14,9 @@ import (
 	_ "github.com/xwjdsh/fy/qq"
 	_ "github.com/xwjdsh/fy/sg"
 	_ "github.com/xwjdsh/fy/yd"
+
+	"github.com/atotto/clipboard"
+	"github.com/fatih/color"
 	"golang.org/x/crypto/ssh/terminal"
 )
 

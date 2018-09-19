@@ -6,8 +6,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/tidwall/gjson"
 	"github.com/xwjdsh/fy"
+
+	"github.com/tidwall/gjson"
 )
 
 type baidu struct{}
@@ -25,21 +26,28 @@ func init() {
 }
 
 func (b *baidu) Desc() (string, string, string) {
-	return "bd", "baidu", "http://fanyi.baidu.com/"
+	return "bd", "baidu", "https://fanyi.baidu.com/"
 }
 
 func (b *baidu) Translate(req fy.Request) (resp *fy.Response) {
 	resp = fy.NewResp(b)
 
-	r, err := fy.NotReadResp(http.Get("http://www.baidu.com"))
+	r, err := fy.NotReadResp(http.Get("https://www.baidu.com"))
 	if err != nil {
 		resp.Err = fmt.Errorf("fy.NotReadResp error: %v", err)
 		return
 	}
-	cookies := r.Cookies()
+	baiduCookies := r.Cookies()
+
+	r, err = fy.NotReadResp(http.Get("https://fanyi.baidu.com"))
+	if err != nil {
+		resp.Err = fmt.Errorf("fy.NotReadResp error: %v", err)
+		return
+	}
+	baiduFanyiCookies := r.Cookies()
 
 	param := url.Values{"query": {req.Text}}
-	detectUrl := "http://fanyi.baidu.com/langdetect"
+	detectUrl := "https://fanyi.baidu.com/langdetect"
 	body := strings.NewReader(param.Encode())
 	r, data, err := fy.SendRequest("POST", detectUrl, body, func(req *http.Request) error {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
@@ -53,8 +61,9 @@ func (b *baidu) Translate(req fy.Request) (resp *fy.Response) {
 	}
 	from := jr.Get("lan").String()
 
-	r, data, err = fy.SendRequest("GET", "http://fanyi.baidu.com", nil, func(req *http.Request) error {
-		fy.AddCookies(req, cookies)
+	r, data, err = fy.SendRequest("GET", "https://fanyi.baidu.com", nil, func(req *http.Request) error {
+		fy.AddCookies(req, baiduCookies)
+		fy.AddCookies(req, baiduFanyiCookies)
 		return nil
 	})
 	if err != nil {
@@ -82,11 +91,12 @@ func (b *baidu) Translate(req fy.Request) (resp *fy.Response) {
 		"sign":  {sign},
 		"token": {token},
 	}
-	urlStr := "http://fanyi.baidu.com/v2transapi"
+	urlStr := "https://fanyi.baidu.com/v2transapi"
 	body = strings.NewReader(param.Encode())
 	_, data, err = fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-		fy.AddCookies(req, cookies)
+		fy.AddCookies(req, baiduCookies)
+		fy.AddCookies(req, baiduFanyiCookies)
 		return nil
 	})
 	if err != nil {
