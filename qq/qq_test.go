@@ -28,7 +28,7 @@ func Test_tencent_Translate(t *testing.T) {
 			},
 			wantResp: &fy.Response{
 				FullName: "tencent",
-				Result:   "试验 / 测验 / 化验 / 检查",
+				Result:   "试验",
 				Err:      nil,
 			},
 		},
