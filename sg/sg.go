@@ -20,7 +20,7 @@ var langConvertMap = map[string]string{
 }
 
 func (s *sogou) Desc() (string, string, string) {
-	return "sg", "sogou", "http://fanyi.sogou.com/"
+	return "sg", "sogou", "https://fanyi.sogou.com"
 }
 
 func (s *sogou) Translate(req fy.Request) (resp *fy.Response) {
@@ -29,12 +29,20 @@ func (s *sogou) Translate(req fy.Request) (resp *fy.Response) {
 	if tl, ok := langConvertMap[req.TargetLang]; ok {
 		req.TargetLang = tl
 	}
+
+	sign, err := calSign("auto", req.TargetLang, req.Text)
+	if err != nil {
+		resp.Err = fmt.Errorf("calSign error: %v", err)
+		return
+	}
+
 	param := url.Values{
 		"from": {"auto"},
 		"to":   {req.TargetLang},
 		"text": {req.Text},
+		"s":    {sign},
 	}
-	urlStr := "https://fanyi.sogou.com/reventondc/translate"
+	urlStr := "https://fanyi.sogou.com/reventondc/translateV1"
 	_, data, err := fy.ReadResp(http.PostForm(urlStr, param))
 	if err != nil {
 		resp.Err = fmt.Errorf("fy.ReadResp error: %v", err)
@@ -42,15 +50,13 @@ func (s *sogou) Translate(req fy.Request) (resp *fy.Response) {
 	}
 
 	jr := gjson.Parse(string(data))
-	if errorCode := jr.Get("errorCode").Int(); errorCode != 0 {
-		resp.Err = fmt.Errorf("json result errorCode is %d", errorCode)
-		return
+
+	dit := jr.Get("data.translate.dit").String()
+	if dit == "" {
+		resp.Err = fmt.Errorf("cannot get translate result")
+	} else {
+		resp.Result = dit
 	}
 
-	if errorCode := jr.Get("translate.errorCode").String(); errorCode != "0" {
-		resp.Err = fmt.Errorf("json result translate.errorCode is %s", errorCode)
-		return
-	}
-	resp.Result = jr.Get("translate.dit").String()
 	return
 }
