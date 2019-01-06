@@ -1,15 +1,9 @@
 language: go
 go: 
- - 1.8.x
- - 1.9.x
- - 1.10.x
-
-install:
-  - go get -u github.com/golang/dep/cmd/dep
-  - dep ensure
+ - 1.11.x
 
 after_success:
-  - test "$TRAVIS_GO_VERSION" = "1.10" -a -n "$TRAVIS_TAG" && curl -sL https://git.io/goreleaser | bash
+  - test "$TRAVIS_GO_VERSION" = "1.11" -a -n "$TRAVIS_TAG" && curl -sL https://git.io/goreleaser | bash
 
 deployment:
   tag:
@@ -17,3 +11,7 @@ deployment:
     owner: xwjdsh
     commands:
       - curl -sL https://git.io/goreleaser | bash
+
+script:
+  - env GO111MODULE=on go build
+  - env GO111MODULE=on go test
