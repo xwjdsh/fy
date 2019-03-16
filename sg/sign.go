@@ -202,7 +202,7 @@ function sign(t, n) {
 
 func calSign(from, to, text string) (string, error) {
 	vm := otto.New()
-	if err := vm.Set("query", from+to+text+"41ee21a5ab5a13f72687a270816d1bfd"); err != nil {
+	if err := vm.Set("query", from+to+text+"b33bf8c58706155663d1ad5dba4192dc"); err != nil {
 		return "", fmt.Errorf("vm.Set query error: %v", err)
 	}
 	value, err := vm.Run(signJS)
