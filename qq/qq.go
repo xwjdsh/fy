@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/tidwall/gjson"
 
@@ -47,9 +48,12 @@ func (t *tencent) Translate(req fy.Request) (resp *fy.Response) {
 		req.TargetLang = tl
 	}
 	param := url.Values{
-		"source":     {"auto"},
-		"target":     {req.TargetLang},
-		"sourceText": {req.Text},
+		"source":      {"auto"},
+		"target":      {req.TargetLang},
+		"sourceText":  {req.Text},
+		"qtv":         {qtv},
+		"qtk":         {qtk},
+		"sessionUuid": {fmt.Sprintf("translate_uuid%d", time.Now().UnixNano()/int64(time.Millisecond))},
 	}
 
 	urlStr := "https://fanyi.qq.com/api/translate"
