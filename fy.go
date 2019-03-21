@@ -1,10 +1,9 @@
 package fy
 
 import (
-	"fmt"
-	"log"
-	"strings"
+	"context"
 	"sync"
+	"time"
 )
 
 const (
@@ -18,89 +17,77 @@ const (
 	Spanish  = "es"
 )
 
-var (
-	translatorMap = map[string]Translator{}
-	lock          sync.Mutex
-)
-
-// Register register a translator
-func Register(t Translator) {
-	lock.Lock()
-	defer lock.Unlock()
-
-	name, _, _ := t.Desc()
-	if _, ok := translatorMap[name]; ok {
-		log.Panicf("%s has been registered", name)
-	}
-	translatorMap[name] = t
+var translators = []translator{
+	baidu, bing, google, sogou, tencent, youdao,
 }
 
-// Filter filter translators
-func Filter(only, except string) ([]Translator, error) {
-	lock.Lock()
-	defer lock.Unlock()
-
-	getMap := func(str string) (map[string]bool, error) {
-		m := map[string]bool{}
-		if str == "" {
-			return m, nil
-		}
-		for _, s := range strings.Split(str, ",") {
-			if _, ok := translatorMap[s]; !ok {
-				return nil, fmt.Errorf("the translator [%s] does not exist", s)
-			}
-			m[s] = true
-		}
-		return m, nil
-	}
-	onlyMap, err := getMap(only)
-	if err != nil {
-		return nil, err
-	}
-	exceptMap, err := getMap(except)
-	if err != nil {
-		return nil, err
-	}
-	result := []Translator{}
-	for k, v := range translatorMap {
-		if (len(onlyMap) > 0 && !onlyMap[k]) || (len(exceptMap) > 0 && exceptMap[k]) {
-			continue
-		}
-		result = append(result, v)
-	}
-	return result, nil
-}
-
-// NewResp new Response, set fullname
-func NewResp(t Translator) *Response {
-	_, fullname, _ := t.Desc()
-	return &Response{
-		FullName: fullname,
-	}
-}
-
-// Request translate request
+// Request translation request
 type Request struct {
-	// The target language of translation
-	TargetLang string
-	// Text translate text
+	// FromLang the from language of the translation
+	FromLang string
+	// ToLang the to language of the translation
+	ToLang string
+	// Text translation text
 	Text string
 }
 
-// Response translate response
+// Response translation response
 type Response struct {
-	// FullName translator fullname
-	FullName string
-	// Result translate result
+	// Name the translator name
+	Name string
+	// Homepage the translator homepage
+	Homepage string
+	// Result the translation result
 	Result string
-	// Err translate error
+	// Err the translation error
 	Err error
 }
 
-// Translator translator interface
-type Translator interface {
-	// Desc get translator info
-	Desc() (name string, fullname string, source string)
-	// Translate do translation task
-	Translate(Request) *Response
+func newResp(t translator) *Response {
+	name, homepage := t.desc()
+	return &Response{
+		Name:     name,
+		Homepage: homepage,
+	}
+}
+
+type translator interface {
+	desc() (name string, source string)
+	translate(context.Context, Request) *Response
+}
+
+func AsyncTranslate(eachTranslatorTimeout time.Duration, req *Request, ts ...string) <-chan *Response {
+	var limitMap map[string]bool
+	if len(ts) > 0 {
+		limitMap = map[string]bool{}
+		for _, name := range ts {
+			limitMap[name] = true
+		}
+	}
+
+	wg := sync.WaitGroup{}
+	ch := make(chan *Response)
+	for _, t := range translators {
+		name, _ := t.desc()
+		if limitMap != nil && !limitMap[name] {
+			continue
+		}
+
+		wg.Add(1)
+		go func(t translator) {
+			defer wg.Done()
+
+			ctx, cancel := context.WithTimeout(context.Background(), eachTranslatorTimeout)
+			defer cancel()
+			ch <- t.translate(ctx, *req)
+
+		}(t)
+	}
+
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+
+	return ch
 }

@@ -1,6 +1,7 @@
-package sg
+package fy
 
 import (
+	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
@@ -11,29 +12,26 @@ import (
 	"time"
 
 	"github.com/tidwall/gjson"
-	"github.com/xwjdsh/fy"
 )
 
-type youdao struct{}
+type youdaoTranslator struct{}
 
-var langConvertMap = map[string]string{
-	fy.Chinese: "zh-CHS",
+var youdao translator = new(youdaoTranslator)
+
+func (y *youdaoTranslator) desc() (string, string) {
+	return "youdao", "http://fanyi.youdao.com/"
 }
 
-func init() {
-	fy.Register(new(youdao))
+func YoudaoTranslate(ctx context.Context, req Request) *Response {
+	return youdao.translate(ctx, req)
 }
 
-func (y *youdao) Desc() (string, string, string) {
-	return "yd", "youdao", "http://fanyi.youdao.com/"
-}
+func (y *youdaoTranslator) translate(ctx context.Context, req Request) (resp *Response) {
+	resp = newResp(y)
 
-func (y *youdao) Translate(req fy.Request) (resp *fy.Response) {
-	resp = fy.NewResp(y)
-
-	r, err := fy.NotReadResp(http.Get("http://youdao.com"))
+	r, _, err := sendRequest(ctx, http.MethodGet, "http://youdao.com", nil, nil)
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.NotReadResp error: %v", err)
+		resp.Err = fmt.Errorf("notReadResp error: %v", err)
 		return
 	}
 	cookies := r.Cookies()
@@ -47,12 +45,10 @@ func (y *youdao) Translate(req fy.Request) (resp *fy.Response) {
 	h.Write([]byte("fanyideskweb" + req.Text + salt + `ebSeFb%=XZ%T[KZ)c(sy!`))
 	sign := hex.EncodeToString(h.Sum(nil))
 
-	if tl, ok := langConvertMap[req.TargetLang]; ok {
-		req.TargetLang = tl
-	}
+	req.ToLang = y.convertLanguage(req.ToLang)
 	param := url.Values{
 		"from":    {"AUTO"},
-		"to":      {req.TargetLang},
+		"to":      {req.ToLang},
 		"i":       {req.Text},
 		"client":  {"fanyideskweb"},
 		"salt":    {salt},
@@ -62,15 +58,15 @@ func (y *youdao) Translate(req fy.Request) (resp *fy.Response) {
 	}
 	urlStr := "http://fanyi.youdao.com/translate_o"
 	body := strings.NewReader(param.Encode())
-	_, data, err := fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
+	_, data, err := sendRequest(ctx, "POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Referer", "http://fanyi.youdao.com/")
 		req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0")
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-		fy.AddCookies(req, cookies)
+		addCookies(req, cookies)
 		return nil
 	})
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.SendRequest error: %v", err)
+		resp.Err = fmt.Errorf("sendRequest error: %v", err)
 		return
 	}
 
@@ -82,4 +78,14 @@ func (y *youdao) Translate(req fy.Request) (resp *fy.Response) {
 
 	resp.Result = jr.Get("translateResult.0").String()
 	return
+}
+
+func (y *youdaoTranslator) convertLanguage(language string) string {
+	l := language
+	switch language {
+	case Chinese:
+		l = "zh-CHS"
+	}
+
+	return l
 }

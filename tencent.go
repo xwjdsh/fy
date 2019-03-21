@@ -1,6 +1,7 @@
-package qq
+package fy
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -9,47 +10,39 @@ import (
 	"time"
 
 	"github.com/tidwall/gjson"
-
-	"github.com/xwjdsh/fy"
 )
 
-type tencent struct{}
+type tencentTranslator struct{}
 
-var langConvertMap = map[string]string{
-	fy.Chinese:  "zh",
-	fy.Japanese: "jp",
-	fy.Korean:   "kr",
+var tencent translator = new(tencentTranslator)
+
+func (t *tencentTranslator) desc() (string, string) {
+	return "tencent", "https://fanyi.qq.com/"
 }
 
-func init() {
-	fy.Register(new(tencent))
+func TencentTranslate(ctx context.Context, req Request) *Response {
+	return tencent.translate(ctx, req)
 }
 
-func (t *tencent) Desc() (string, string, string) {
-	return "qq", "tencent", "https://fanyi.qq.com/"
-}
+func (t *tencentTranslator) translate(ctx context.Context, req Request) (resp *Response) {
+	resp = newResp(t)
 
-func (t *tencent) Translate(req fy.Request) (resp *fy.Response) {
-	resp = fy.NewResp(t)
-
-	_, data, err := fy.SendRequest("GET", "https://fanyi.qq.com", nil, nil)
+	_, data, err := sendRequest(ctx, "GET", "https://fanyi.qq.com", nil, nil)
 	if err != nil {
-		err = fmt.Errorf("fy.SendRequest error: %v", err)
+		err = fmt.Errorf("sendRequest error: %v", err)
 		return
 	}
 
-	qtv, qtk, err := getQtk(string(data))
+	qtv, qtk, err := t.getQtk(string(data))
 	if err != nil {
 		resp.Err = fmt.Errorf("getQtk error: %v", err)
 		return
 	}
 
-	if tl, ok := langConvertMap[req.TargetLang]; ok {
-		req.TargetLang = tl
-	}
+	req.ToLang = t.convertLanguage(req.ToLang)
 	param := url.Values{
 		"source":      {"auto"},
-		"target":      {req.TargetLang},
+		"target":      {req.ToLang},
 		"sourceText":  {req.Text},
 		"qtv":         {qtv},
 		"qtk":         {qtk},
@@ -58,7 +51,7 @@ func (t *tencent) Translate(req fy.Request) (resp *fy.Response) {
 
 	urlStr := "https://fanyi.qq.com/api/translate"
 	body := strings.NewReader(param.Encode())
-	_, data, err = fy.SendRequest("POST", urlStr, body, func(req *http.Request) error {
+	_, data, err = sendRequest(ctx, "POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Origin", "http://fanyi.qq.com")
 		req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0")
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
@@ -66,7 +59,7 @@ func (t *tencent) Translate(req fy.Request) (resp *fy.Response) {
 		return nil
 	})
 	if err != nil {
-		resp.Err = fmt.Errorf("fy.SendRequest error: %v", err)
+		resp.Err = fmt.Errorf("sendRequest error: %v", err)
 		return
 	}
 
@@ -87,7 +80,21 @@ func (t *tencent) Translate(req fy.Request) (resp *fy.Response) {
 	return
 }
 
-func getQtk(dataStr string) (qtv string, qtk string, err error) {
+func (*tencentTranslator) convertLanguage(language string) string {
+	l := language
+	switch language {
+	case Chinese:
+		l = "zh"
+	case Japanese:
+		l = "jp"
+	case Korean:
+		l = "kr"
+	}
+
+	return l
+}
+
+func (*tencentTranslator) getQtk(dataStr string) (qtv string, qtk string, err error) {
 	//document.cookie = "qtv=ad15088b8bcde724";
 	qtvResult := regexp.MustCompile(`"qtv=(?P<qtv>\S+)";`).FindStringSubmatch(dataStr)
 	if len(qtvResult) != 2 {

@@ -2,49 +2,53 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/xwjdsh/fy"
-	_ "github.com/xwjdsh/fy/bd"
-	_ "github.com/xwjdsh/fy/by"
-	_ "github.com/xwjdsh/fy/gg"
-	_ "github.com/xwjdsh/fy/qq"
-	_ "github.com/xwjdsh/fy/sg"
-	_ "github.com/xwjdsh/fy/yd"
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+const (
+	iconBad = "✗"
+
+	logo = `
+	    ____     
+	   / __/_  __
+	  / /_/ / / /
+	 / __/ /_/ / 
+	/_/  \__, /  
+	    /____/   
+
+https://github.com/xwjdsh/fy
+`
+	coffeeEmoji = "\u2615\ufe0f"
+)
+
 var (
-	version    = "unknown"
-	isDebug    = flag.Bool("d", false, "Debug mode, if an error occurs in the translation, the error message is displayed")
-	sources    = flag.Bool("s", false, "Display translators information")
-	filePath   = flag.String("f", "", "file path")
-	only       = flag.String("o", "", "Select only the translators, comma separated. eg 'bd,gg', it can also be set by the 'FY_ONLY' environment variable")
-	except     = flag.String("e", "", "Select translators except these, comma separated. eg 'bd,gg', it can also be set by the 'FY_EXCEPT' environment variable")
-	targetLang = flag.String("t", "", "The target language of translation")
+	isDebug    = flag.Bool("d", false, "Debug mode, if an error occurs during translation, the error message will be displayed as the translation result")
+	filePath   = flag.String("f", "", "File path")
+	targetLang = flag.String("t", "", "The target language of the translation")
+
+	translator = flag.String("translator", "", "Restrict the translators used, comma separated. eg 'baidu,google'")
+	timeout    = flag.Duration("timeout", 5*time.Second, "The timeout for each translator")
 )
 
 func main() {
 	flag.Parse()
-	if *sources {
-		printSources()
-		return
-	}
 
 	text, err := getText()
 	if err != nil {
-		color.Red("%s %v", fy.IconBad, err)
+		color.Red("%s %v", iconBad, err)
 		os.Exit(1)
 	}
 	if text == "" {
-		color.Green(fy.Logo)
-		fmt.Printf(fy.Desc, version)
+		color.Green(logo)
 		return
 	}
 	isChinese := fy.IsChinese(text)
@@ -52,35 +56,25 @@ func main() {
 		*targetLang = getTargetLang(isChinese)
 	}
 
-	translators, err := getTranslators()
-	if err != nil {
-		color.Red("%s %v", fy.IconBad, err)
-		os.Exit(1)
+	req := &fy.Request{
+		ToLang: *targetLang,
+		Text:   text,
 	}
 
-	req := fy.Request{
-		TargetLang: *targetLang,
-		Text:       text,
-	}
-	responseChan := make(chan *fy.Response)
-
-	wrap := func(t fy.Translator) {
-		responseChan <- t.Translate(req)
-	}
-	for _, t := range translators {
-		go wrap(t)
+	var translators []string
+	if *translator != "" {
+		translators = strings.Split(*translator, ",")
 	}
 
-	fmt.Println()
-	for range translators {
-		resp := <-responseChan
+	ch := fy.AsyncTranslate(*timeout, req, translators...)
+	for resp := range ch {
 		if resp.Err != nil {
 			if !*isDebug {
 				continue
 			}
 			resp.Result = resp.Err.Error()
 		}
-		color.Green("\t%s  [%s]\n\n", fy.CoffeeEmoji, resp.FullName)
+		color.Green("\t%s  [%s]\n\n", coffeeEmoji, resp.Name)
 		color.Magenta("\t\t%s\n\n", resp.Result)
 	}
 }
@@ -127,23 +121,4 @@ func getTargetLang(isChinese bool) string {
 		}
 	}
 	return target
-}
-
-func getTranslators() ([]fy.Translator, error) {
-	if *only == "" {
-		*only = os.Getenv("FY_ONLY")
-	}
-	if *except == "" {
-		*except = os.Getenv("FY_EXCEPT")
-	}
-	return fy.Filter(*only, *except)
-}
-
-func printSources() {
-	translators, _ := fy.Filter("", "")
-	fmt.Println()
-	for _, t := range translators {
-		fy.PrintSource(t.Desc())
-	}
-	fmt.Println()
 }

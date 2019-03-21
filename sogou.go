@@ -1,10 +1,75 @@
-package sg
+package fy
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/robertkrimen/otto"
+	"github.com/tidwall/gjson"
 )
+
+type sogouTranslator struct{}
+
+var sogou translator = new(sogouTranslator)
+
+func (s *sogouTranslator) desc() (string, string) {
+	return "sogou", "https://fanyi.sogou.com"
+}
+
+func SogouTranslate(ctx context.Context, req Request) *Response {
+	return sogou.translate(ctx, req)
+}
+
+func (s *sogouTranslator) translate(ctx context.Context, req Request) (resp *Response) {
+	resp = newResp(s)
+	req.ToLang = s.convertLanguage(req.ToLang)
+
+	sign, err := s.calSign("auto", req.ToLang, req.Text)
+	if err != nil {
+		resp.Err = fmt.Errorf("calSign error: %v", err)
+		return
+	}
+
+	param := url.Values{
+		"from": {"auto"},
+		"to":   {req.ToLang},
+		"text": {req.Text},
+		"s":    {sign},
+	}
+	urlStr := "https://fanyi.sogou.com/reventondc/translateV1"
+	body := strings.NewReader(param.Encode())
+	_, data, err := sendRequest(ctx, http.MethodPost, urlStr, body, func(req *http.Request) error {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+		return nil
+	})
+	if err != nil {
+		resp.Err = fmt.Errorf("readResp error: %v", err)
+		return
+	}
+
+	jr := gjson.Parse(string(data))
+	dit := jr.Get("data.translate.dit").String()
+	if dit == "" {
+		resp.Err = fmt.Errorf("cannot get translate result")
+	} else {
+		resp.Result = dit
+	}
+
+	return
+}
+
+func (s *sogouTranslator) convertLanguage(language string) string {
+	l := language
+	switch language {
+	case Chinese:
+		l = "zh-CHS"
+	}
+
+	return l
+}
 
 const signJS = `
 var n122 = {
@@ -200,9 +265,9 @@ function sign(t, n) {
 						result = sign(query)
 `
 
-func calSign(from, to, text string) (string, error) {
+func (*sogouTranslator) calSign(from, to, text string) (string, error) {
 	vm := otto.New()
-	if err := vm.Set("query", from+to+text+"b33bf8c58706155663d1ad5dba4192dc"); err != nil {
+	if err := vm.Set("query", from+to+text+"72da1dc662daf182c4f7671ec884074b"); err != nil {
 		return "", fmt.Errorf("vm.Set query error: %v", err)
 	}
 	value, err := vm.Run(signJS)

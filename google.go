@@ -1,14 +1,87 @@
-package gg
+package fy
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"net/url"
 	"regexp"
 
 	"github.com/robertkrimen/otto"
+	"github.com/tidwall/gjson"
 )
 
+type googleTranslator struct{}
+
+var google translator = new(googleTranslator)
+
+func (*googleTranslator) desc() (string, string) {
+	return "google", "https://translate.google.cn/"
+}
+
+func GoogleTranslate(ctx context.Context, req Request) *Response {
+	return google.translate(ctx, req)
+}
+
+func (g *googleTranslator) translate(ctx context.Context, req Request) (resp *Response) {
+	resp = newResp(g)
+	_, data, err := sendRequest(ctx, http.MethodGet, "https://translate.google.cn", nil, nil)
+	if err != nil {
+		resp.Err = fmt.Errorf("readResp error: %v", err)
+		return
+	}
+	vq, err := g.getVq(string(data))
+	if err != nil {
+		resp.Err = fmt.Errorf("getVq error: %v", err)
+		return
+	}
+	tk, err := g.calTK(vq, req.Text)
+	if err != nil {
+		resp.Err = fmt.Errorf("calTK error: %v", err)
+		return
+	}
+
+	u, _ := url.Parse("https://translate.google.cn/translate_a/single")
+	param := u.Query()
+	param.Set("client", "t")
+	param.Set("sl", "auto")
+	param.Set("hl", "zh-CN")
+	param.Set("tl", req.ToLang)
+	param.Set("dt", "t")
+	param.Set("ie", "UTF-8")
+	param.Set("oe", "UTF-8")
+	param.Set("source", "btn")
+	param.Set("ssel", "3")
+	param.Set("tsel", "3")
+	param.Set("kc", "0")
+	param.Set("tk", tk)
+	param.Set("q", req.Text)
+	u.RawQuery = param.Encode()
+
+	_, data, err = sendRequest(ctx, "GET", u.String(), nil, func(r *http.Request) error {
+		r.Header.Set("User-Agent", "Paw/3.1.5 (Macintosh; OS X/10.13.2) GCDHTTPRequest")
+		return nil
+	})
+	if err != nil {
+		resp.Err = fmt.Errorf("sendRequest error: %v", err)
+		return
+	}
+
+	jr := gjson.Parse(string(data))
+	if !jr.Get("..0.0.0").Exists() {
+		resp.Err = fmt.Errorf("cannot get google translate result")
+		return
+	}
+	jsonResult := jr.Get("..0.0").Array()
+	for _, r := range jsonResult {
+		resp.Result += r.Get("..0.0").String()
+	}
+
+	return
+}
+
 const (
-	tkJS = `
+	googleSignJS = `
   var Tq = function(a) {
 	        return function() {
 	            return a
@@ -53,7 +126,7 @@ const (
 	`
 )
 
-func calTK(vq, query string) (string, error) {
+func (*googleTranslator) calTK(vq, query string) (string, error) {
 	vm := otto.New()
 	if err := vm.Set("Vq", vq); err != nil {
 		return "", fmt.Errorf("vm.Set Vq error: %v", err)
@@ -61,14 +134,14 @@ func calTK(vq, query string) (string, error) {
 	if err := vm.Set("query", query); err != nil {
 		return "", fmt.Errorf("vm.Set query error: %v", err)
 	}
-	value, err := vm.Run(tkJS)
+	value, err := vm.Run(googleSignJS)
 	if err != nil {
 		return "", fmt.Errorf("vm.Run error: %v", err)
 	}
 	return value.String(), nil
 }
 
-func getVq(dataStr string) (string, error) {
+func (*googleTranslator) getVq(dataStr string) (string, error) {
 	//dataStr = `LOW_CONFIDENCE_THRESHOLD=-1;MAX_ALTERNATIVES_ROUNDTRIP_RESULTS=1;TKK=eval('((function(){var a\x3d1966732470;var b\x3d1714107181;return 423123+\x27.\x27+(a+b)})())');VERSION_LABEL = 'twsfe_w_20180402_RC00';`
 	vqResult := regexp.MustCompile(`tkk:'(?P<vq>[\s\S]+)',experiment_ids`).FindStringSubmatch(dataStr)
 	if len(vqResult) != 2 {

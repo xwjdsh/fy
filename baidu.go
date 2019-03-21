@@ -1,14 +1,131 @@
-package bd
+package fy
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/robertkrimen/otto"
+	"github.com/tidwall/gjson"
 )
 
-const signJS = `
+type baiduTranslator struct{}
 
+var baidu translator = new(baiduTranslator)
+
+func (*baiduTranslator) desc() (string, string) {
+	return "baiduTranslator", "https://fanyi.baiduTranslator.com/"
+}
+
+func BaiduTranslate(ctx context.Context, req Request) (resp *Response) {
+	return baidu.translate(ctx, req)
+}
+
+func (b *baiduTranslator) translate(ctx context.Context, req Request) (resp *Response) {
+	resp = newResp(b)
+
+	r, _, err := sendRequest(ctx, http.MethodGet, "https://www.baidu.com", nil, nil)
+	if err != nil {
+		resp.Err = fmt.Errorf("notReadResp error: %v", err)
+		return
+	}
+	cookies := r.Cookies()
+
+	r, _, err = sendRequest(ctx, http.MethodGet, "https://fanyi.baidu.com", nil, nil)
+	if err != nil {
+		resp.Err = fmt.Errorf("notReadResp error: %v", err)
+		return
+	}
+	fanyiCookies := r.Cookies()
+
+	param := url.Values{"query": {req.Text}}
+	detectUrl := "https://fanyi.baidu.com/langdetect"
+	body := strings.NewReader(param.Encode())
+	r, data, err := sendRequest(ctx, http.MethodPost, detectUrl, body, func(req *http.Request) error {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+		return nil
+	})
+
+	jr := gjson.Parse(string(data))
+	if errorCode := jr.Get("error").Int(); errorCode != 0 {
+		resp.Err = fmt.Errorf("langdetect json result error is %d", errorCode)
+		return
+	}
+	from := jr.Get("lan").String()
+
+	r, data, err = sendRequest(ctx, http.MethodGet, "https://fanyi.baidu.com", nil, func(req *http.Request) error {
+		addCookies(req, cookies)
+		addCookies(req, fanyiCookies)
+		return nil
+	})
+	if err != nil {
+		err = fmt.Errorf("SendRequest error: %v", err)
+		return
+	}
+
+	token, gtk, err := b.tokenAndGtk(string(data))
+	if err != nil {
+		resp.Err = fmt.Errorf("getTokenAndGtk error: %v", err)
+		return
+	}
+	sign, err := b.sign(gtk, req.Text)
+	if err != nil {
+		resp.Err = fmt.Errorf("calSign error: %v", err)
+		return
+	}
+	req.ToLang = b.convertLanguage(req.ToLang)
+	param = url.Values{
+		"from":  {from},
+		"to":    {req.ToLang},
+		"query": {req.Text},
+		"sign":  {sign},
+		"token": {token},
+	}
+	urlStr := "https://fanyi.baidu.com/v2transapi"
+	body = strings.NewReader(param.Encode())
+	_, data, err = sendRequest(ctx, "POST", urlStr, body, func(req *http.Request) error {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+		addCookies(req, cookies)
+		addCookies(req, fanyiCookies)
+		return nil
+	})
+	if err != nil {
+		resp.Err = fmt.Errorf("sendRequest error: %v", err)
+		return
+	}
+
+	jr = gjson.Parse(string(data))
+	if errorCode := jr.Get("error").Int(); errorCode != 0 {
+		resp.Err = fmt.Errorf("json result error is %d", errorCode)
+		return
+	}
+
+	resp.Result = jr.Get("trans_result.data.0.dst").String()
+	return
+}
+
+func (*baiduTranslator) convertLanguage(language string) string {
+	l := language
+	switch language {
+	case Chinese:
+		l = "zh"
+	case Korean:
+		l = "kor"
+	case Japanese:
+		l = "jp"
+	case French:
+		l = "fra"
+	case Spanish:
+		l = "spa"
+	}
+
+	return l
+}
+
+const baiduSignJS = `
     function a(r) {
         if (Array.isArray(r)) {
             for (var o = 0, t = Array(r.length); o < r.length; o++) t[o] = r[o];
@@ -49,7 +166,7 @@ const signJS = `
 		result = e(query)
 `
 
-func calSign(gtk, query string) (string, error) {
+func (*baiduTranslator) sign(gtk, query string) (string, error) {
 	vm := otto.New()
 	if err := vm.Set("gtk", gtk); err != nil {
 		return "", fmt.Errorf("vm.Set gtk error: %v", err)
@@ -57,7 +174,7 @@ func calSign(gtk, query string) (string, error) {
 	if err := vm.Set("query", query); err != nil {
 		return "", fmt.Errorf("vm.Set query error: %v", err)
 	}
-	value, err := vm.Run(signJS)
+	value, err := vm.Run(baiduSignJS)
 	if err != nil {
 		return "", fmt.Errorf("vm.Run error: %v", err)
 	}
@@ -68,7 +185,7 @@ func calSign(gtk, query string) (string, error) {
 	return result, nil
 }
 
-func getTokenAndGtk(dataStr string) (token, gtk string, err error) {
+func (*baiduTranslator) tokenAndGtk(dataStr string) (token, gtk string, err error) {
 	tokenResult := regexp.MustCompile(`token: '(?P<token>\S+)',`).FindStringSubmatch(dataStr)
 	if len(tokenResult) != 2 {
 		err = fmt.Errorf("cannot get token")
