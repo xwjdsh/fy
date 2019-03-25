@@ -17,7 +17,7 @@ type baiduTranslator struct{}
 var baidu translator = new(baiduTranslator)
 
 func (*baiduTranslator) desc() (string, string) {
-	return "baiduTranslator", "https://fanyi.baiduTranslator.com/"
+	return "baidu", "https://fanyi.baidu.com/"
 }
 
 func BaiduTranslate(ctx context.Context, req Request) (resp *Response) {
