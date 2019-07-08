@@ -267,7 +267,7 @@ function sign(t, n) {
 
 func (*sogouTranslator) calSign(from, to, text string) (string, error) {
 	vm := otto.New()
-	if err := vm.Set("query", from+to+text+"72da1dc662daf182c4f7671ec884074b"); err != nil {
+	if err := vm.Set("query", from+to+text+"8954e2993f18dd83fd05e79bd6dd040e"); err != nil {
 		return "", fmt.Errorf("vm.Set query error: %v", err)
 	}
 	value, err := vm.Run(signJS)
