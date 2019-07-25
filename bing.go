@@ -24,26 +24,16 @@ func BingTranslate(ctx context.Context, req Request) *Response {
 
 func (b *bingTranslator) translate(ctx context.Context, req Request) (resp *Response) {
 	resp = newResp(b)
-
-	detectUrl := "https://www.bing.com/tdetect/"
-	param := url.Values{"text": {req.Text}}
-	body := strings.NewReader(param.Encode())
-	_, data, err := sendRequest(ctx, http.MethodPost, detectUrl, body, func(req *http.Request) error {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		return nil
-	})
-	from := string(data)
-
 	req.ToLang = b.convertLanguage(req.ToLang)
-	param = url.Values{
-		"from": {from},
-		"to":   {req.ToLang},
-		"text": {req.Text},
+	param := url.Values{
+		"fromLang": {"auto-detect"},
+		"to":       {req.ToLang},
+		"text":     {req.Text},
 	}
 
-	urlStr := "https://www.bing.com/ttranslate/"
-	body = strings.NewReader(param.Encode())
-	_, data, err = sendRequest(ctx, "POST", urlStr, body, func(req *http.Request) error {
+	urlStr := "https://www.bing.com/ttranslatev3"
+	body := strings.NewReader(param.Encode())
+	_, data, err := sendRequest(ctx, "POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		return nil
 	})
@@ -53,7 +43,10 @@ func (b *bingTranslator) translate(ctx context.Context, req Request) (resp *Resp
 	}
 
 	jr := gjson.Parse(string(data))
-	resp.Result = jr.Get("translationResponse").String()
+	resp.Result = jr.Get("0.translations.0.text").String()
+	if resp.Result == "" {
+		resp.Err = fmt.Errorf(string(data))
+	}
 	return
 }
 
