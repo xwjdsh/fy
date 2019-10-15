@@ -15,7 +15,7 @@ type bingTranslator struct{}
 var bing translator = new(bingTranslator)
 
 func (b *bingTranslator) desc() (string, string) {
-	return "bing", "https://www.bing.com/translator/"
+	return "bing", "https://cn.bing.com/translator"
 }
 
 func BingTranslate(ctx context.Context, req Request) *Response {
@@ -31,7 +31,7 @@ func (b *bingTranslator) translate(ctx context.Context, req Request) (resp *Resp
 		"text":     {req.Text},
 	}
 
-	urlStr := "https://www.bing.com/ttranslatev3"
+	urlStr := "https://cn.bing.com/ttranslatev3"
 	body := strings.NewReader(param.Encode())
 	_, data, err := sendRequest(ctx, "POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")

@@ -14,3 +14,5 @@ require (
 	golang.org/x/sys v0.0.0-20190321052220-f7bb7a8bee54 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 )
+
+go 1.13

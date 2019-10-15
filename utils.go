@@ -25,14 +25,13 @@ func sendRequest(ctx context.Context, method, urlStr string, body io.Reader, f f
 		return nil, nil, fmt.Errorf("http.NewRequest error: %v", err)
 	}
 	req = req.WithContext(ctx)
-	client := &http.Client{}
 	if f != nil {
 		if err := f(req); err != nil {
 			return nil, nil, fmt.Errorf("f error: %v", err)
 		}
 	}
 
-	resp, err := client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, nil, fmt.Errorf("http request error: %v", err)
 	}
