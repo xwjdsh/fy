@@ -12,7 +12,7 @@ require (
 	github.com/tidwall/match v1.0.1 // indirect
 	github.com/tidwall/pretty v0.0.0-20180105212114-65a9db5fad51 // indirect
 	golang.org/x/crypto v0.0.0-20190320223903-b7391e95e576
-	golang.org/x/sys v0.0.0-20210421221651-33663a62ff08 // indirect
+	golang.org/x/sys v0.0.0-20210423082822-04245dca01da // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 )
 

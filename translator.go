@@ -1,8 +1,6 @@
 package fy
 
 import (
-	"time"
-
 	"github.com/chromedp/chromedp"
 )
 
@@ -53,17 +51,17 @@ func (b *bingTranslator) homepage() string {
 
 func (b *bingTranslator) getActions(text string, isChinese bool) ([]chromedp.Action, *string) {
 	result := ""
-
+	l := "Chinese Simplified"
 	if isChinese {
-
-	} else {
-
+		l = "English"
 	}
 	return []chromedp.Action{
 		chromedp.Navigate(b.homepage()),
 		chromedp.SendKeys("#tta_input_ta", text, chromedp.ByID),
 		chromedp.Click("#tta_tgtsl", chromedp.ByID),
+		chromedp.SendKeys("#tta_tgtsl", l, chromedp.ByID),
+		chromedp.Click("#tta_tgtsl", chromedp.ByID),
+		// FIXME
 		chromedp.Text("#tta_output_ta", &result, chromedp.ByID),
-		chromedp.Sleep(10 * time.Second),
 	}, &result
 }
