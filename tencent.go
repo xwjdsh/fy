@@ -2,10 +2,10 @@ package fy
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"time"
 
@@ -27,17 +27,17 @@ func TencentTranslate(ctx context.Context, req Request) *Response {
 func (t *tencentTranslator) translate(ctx context.Context, req Request) (resp *Response) {
 	resp = newResp(t)
 
-	_, data, err := sendRequest(ctx, "GET", "https://fanyi.qq.com", nil, nil)
+	_, data, err := sendRequest(ctx, "POST", "https://fanyi.qq.com/api/reauth1232f", nil, nil)
 	if err != nil {
-		err = fmt.Errorf("sendRequest error: %v", err)
+		resp.Err = err
 		return
 	}
-
-	qtv, qtk, err := t.getQtk(string(data))
-	if err != nil {
-		resp.Err = fmt.Errorf("getQtk error: %v", err)
+	m := map[string]string{}
+	if err := json.Unmarshal(data, &m); err != nil {
+		resp.Err = err
 		return
 	}
+	qtv, qtk := m["qtv"], m["qtk"]
 
 	req.ToLang = t.convertLanguage(req.ToLang)
 	param := url.Values{
@@ -55,7 +55,6 @@ func (t *tencentTranslator) translate(ctx context.Context, req Request) (resp *R
 		req.Header.Set("Origin", "http://fanyi.qq.com")
 		req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0")
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-		req.Header.Set("Cookie", fmt.Sprintf("qtv=%s; qtk=%s", qtv, qtk))
 		return nil
 	})
 	if err != nil {
@@ -92,23 +91,4 @@ func (*tencentTranslator) convertLanguage(language string) string {
 	}
 
 	return l
-}
-
-func (*tencentTranslator) getQtk(dataStr string) (qtv string, qtk string, err error) {
-	//document.cookie = "qtv=ad15088b8bcde724";
-	qtvResult := regexp.MustCompile(`"qtv=(?P<qtv>\S+)";`).FindStringSubmatch(dataStr)
-	if len(qtvResult) != 2 {
-		err = fmt.Errorf("cannot get qtv")
-		return
-	}
-	qtv = qtvResult[1]
-
-	//document.cookie = "qtk=aK4qrfL4bLogktVEfIMc785lhWKxOuLuOF243HgKs/lOcPqPhoiwsR+7ysGoTF/rqx1EABKUpNJq2OqbE1PY9T9ICiU2Qm2l0yIMqg3mworcjCX8tiaZzYjkQQqSTk7gCIz/WY0NhTJUrrOemb6nRQ==";
-	qtkResult := regexp.MustCompile(`"qtk=(?P<qtk>\S+)";`).FindStringSubmatch(dataStr)
-	if len(qtkResult) != 2 {
-		err = fmt.Errorf("cannot get qtk")
-		return
-	}
-	qtk = qtkResult[1]
-	return
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 
 	"github.com/tidwall/gjson"
@@ -24,17 +25,32 @@ func BingTranslate(ctx context.Context, req Request) *Response {
 
 func (b *bingTranslator) translate(ctx context.Context, req Request) (resp *Response) {
 	resp = newResp(b)
+
+	_, data, err := sendRequest(ctx, http.MethodGet, "https://cn.bing.com/translator", nil, nil)
+	if err != nil {
+		resp.Err = fmt.Errorf("readResp error: %v", err)
+		return
+	}
+	timestamp, token, err := b.getTimestampAndToken(string(data))
+	if err != nil {
+		resp.Err = err
+		return
+	}
+
 	req.ToLang = b.convertLanguage(req.ToLang)
 	param := url.Values{
 		"fromLang": {"auto-detect"},
 		"to":       {req.ToLang},
 		"text":     {req.Text},
+		"key":      {timestamp},
+		"token":    {token},
 	}
 
 	urlStr := "https://cn.bing.com/ttranslatev3"
 	body := strings.NewReader(param.Encode())
-	_, data, err := sendRequest(ctx, "POST", urlStr, body, func(req *http.Request) error {
+	_, data, err = sendRequest(ctx, "POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		req.Header.Set("User-Agent", UserAgent)
 		return nil
 	})
 	if err != nil {
@@ -54,8 +70,18 @@ func (b *bingTranslator) convertLanguage(language string) string {
 	l := language
 	switch language {
 	case Chinese:
-		l = "zh-CHS"
+		l = "zh-Hans"
 	}
 
 	return l
+}
+
+func (*bingTranslator) getTimestampAndToken(dataStr string) (string, string, error) {
+	// dataStr := `var params_RichTranslateHelper = [1623165977131,"Q5b9PD_0XEdOagXBcPVtlnB6ZML4958D",3600000,true];`
+	result := regexp.MustCompile(`var params_RichTranslateHelper = \[(?P<result>[\s\S]+),"(?P<result1>[\s\S]+)",3600000,true\]`).FindStringSubmatch(dataStr)
+	if len(result) != 3 {
+		return "", "", fmt.Errorf("cannot get timestamp and token")
+	}
+
+	return result[1], result[2], nil
 }

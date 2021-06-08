@@ -1,11 +1,11 @@
 package fy
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
-	"strings"
 
 	"github.com/robertkrimen/otto"
 	"github.com/tidwall/gjson"
@@ -25,6 +25,17 @@ func SogouTranslate(ctx context.Context, req Request) *Response {
 
 func (s *sogouTranslator) translate(ctx context.Context, req Request) (resp *Response) {
 	resp = newResp(s)
+
+	r, _, err := sendRequest(ctx, http.MethodGet, "https://fanyi.sogou.com/", nil, func(r *http.Request) error {
+		r.Header.Set("User-Agent", UserAgent)
+		return nil
+	})
+	if err != nil {
+		resp.Err = fmt.Errorf("notReadResp error: %v", err)
+		return
+	}
+	cookies := r.Cookies()
+
 	req.ToLang = s.convertLanguage(req.ToLang)
 
 	sign, err := s.calSign("auto", req.ToLang, req.Text)
@@ -33,27 +44,24 @@ func (s *sogouTranslator) translate(ctx context.Context, req Request) (resp *Res
 		return
 	}
 
-	param := url.Values{
-		"from":         {"auto"},
-		"to":           {req.ToLang},
-		"text":         {req.Text},
-		"client":       {"pc"},
-		"fr":           {"browser_pc"},
-		"pid":          {"sogou-dict-vr"},
-		"dict":         {"true"},
-		"word_group":   {"true"},
-		"second_query": {"true"},
-		"uuid":         {"66623e19-cb42-4dda-840d-891319162299"},
-		"needQc":       {"1"},
-		"s":            {sign},
+	param := map[string]interface{}{
+		"client":   "pc",
+		"exchange": false,
+		"fr":       "browser_pc",
+		"from":     "auto",
+		"needQc":   1,
+		"s":        sign,
+		"text":     req.Text,
+		"to":       req.ToLang,
 	}
-	urlStr := "https://fanyi.sogou.com/reventondc/translateV2"
-	body := strings.NewReader(param.Encode())
+	urlStr := "https://fanyi.sogou.com/api/transpc/text/result"
+
+	reqData, _ := json.Marshal(param)
+	body := bytes.NewReader(reqData)
 	_, data, err := sendRequest(ctx, http.MethodPost, urlStr, body, func(req *http.Request) error {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
-		req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36")
-		req.Header.Set("Accept", "application/json")
-		req.Header.Set("Referer", "https://fanyi.sogou.com/")
+		addCookies(req, cookies)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("User-Agent", UserAgent)
 		return nil
 	})
 	if err != nil {
@@ -280,7 +288,7 @@ const signJS = `
 
 func (*sogouTranslator) calSign(from, to, text string) (string, error) {
 	vm := otto.New()
-	if err := vm.Set("query", from+to+text+"8511813095152"); err != nil {
+	if err := vm.Set("query", from+to+text+"109984457"); err != nil {
 		return "", fmt.Errorf("vm.Set query error: %v", err)
 	}
 	value, err := vm.Run(signJS)
