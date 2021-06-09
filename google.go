@@ -38,12 +38,13 @@ func (g *googleTranslator) translate(ctx context.Context, req Request) (resp *Re
 		resp.Err = fmt.Errorf("sendRequest error: %v", err)
 		return
 	}
+
 	resp.Result, resp.Err = g.getResult(string(data))
 	return
 }
 
 func (g *googleTranslator) getResult(dataStr string) (string, error) {
-	result := regexp.MustCompile(`(?U),null,null,null,\[\[\\"(?P<result>\S+)\\",\[\\"`).FindStringSubmatch(dataStr)
+	result := regexp.MustCompile(`(?U),\[\[\\"(?P<result>\S+)\\",\[\\"`).FindStringSubmatch(dataStr)
 	if len(result) != 2 {
 		return "", fmt.Errorf("cannot get result")
 	}
