@@ -1,16 +1,35 @@
-# Build customization
+# This is an example .goreleaser.yml file with some sane defaults.
+# Make sure to check the documentation at http://goreleaser.com
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
 builds:
-  - binary: fy
-    main: ./cmd/fy
+  - env:
+      - CGO_ENABLED=0
     goos:
-      - darwin
       - linux
       - windows
-    goarch:
-      - amd64
-
+      - darwin
+archives:
+  - replacements:
+      darwin: Darwin
+      linux: Linux
+      windows: Windows
+      386: i386
+      amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  skort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
 brew:
-  github:
+  tap:
     owner: xwjdsh
     name: homebrew-tap
 
@@ -20,11 +39,7 @@ brew:
 
   homepage: "https://github.com/xwjdsh/fy"
   description: "A command-line translation tool"
+  license: "MIT"
 
   install: |
     bin.install "fy"
-
-release:
-  github:
-    owner: xwjdsh
-    name: fy
