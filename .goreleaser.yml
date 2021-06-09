@@ -7,6 +7,7 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
+    main: ./cmd/fy
     goos:
       - linux
       - windows
@@ -23,23 +24,20 @@ checksum:
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
-  skort: asc
+  sort: asc
   filters:
     exclude:
       - '^docs:'
       - '^test:'
-brew:
-  tap:
-    owner: xwjdsh
-    name: homebrew-tap
-
-  commit_author:
-    name: Wendell Sun
-    email: iwendellsun@gmail.com
-
-  homepage: "https://github.com/xwjdsh/fy"
-  description: "A command-line translation tool"
-  license: "MIT"
-
-  install: |
-    bin.install "fy"
+brews:
+  - tap:
+      owner: xwjdsh
+      name: homebrew-tap
+    commit_author:
+      name: Wendell Sun
+      email: iwendellsun@gmail.com
+    homepage: "https://github.com/xwjdsh/fy"
+    description: "A command-line translation tool"
+    license: "MIT"
+    install: |
+      bin.install "fy"
