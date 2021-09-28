@@ -44,7 +44,7 @@ func (g *googleTranslator) translate(ctx context.Context, req Request) (resp *Re
 }
 
 func (g *googleTranslator) getResult(dataStr string) (string, error) {
-	result := regexp.MustCompile(`null,\[\[\\"(?P<result>.+)\\",null,null,null`).FindStringSubmatch(dataStr)
+	result := regexp.MustCompile(`(?U)null,\[\[\\"(?P<result>.+)\\",null,null,null`).FindStringSubmatch(dataStr)
 	if len(result) != 2 {
 		return "", fmt.Errorf("cannot get result")
 	}
