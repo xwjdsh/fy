@@ -44,10 +44,14 @@ func (b *baiduTranslator) translate(ctx context.Context, req Request) (resp *Res
 	param := url.Values{"query": {req.Text}}
 	detectUrl := "https://fanyi.baidu.com/langdetect"
 	body := strings.NewReader(param.Encode())
-	r, data, err := sendRequest(ctx, http.MethodPost, detectUrl, body, func(req *http.Request) error {
+	_, data, err := sendRequest(ctx, http.MethodPost, detectUrl, body, func(req *http.Request) error {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
 		return nil
 	})
+	if err != nil {
+		resp.Err = err
+		return
+	}
 
 	jr := gjson.Parse(string(data))
 	if errorCode := jr.Get("error").Int(); errorCode != 0 {
@@ -56,13 +60,13 @@ func (b *baiduTranslator) translate(ctx context.Context, req Request) (resp *Res
 	}
 	from := jr.Get("lan").String()
 
-	r, data, err = sendRequest(ctx, http.MethodGet, "https://fanyi.baidu.com", nil, func(req *http.Request) error {
+	_, data, err = sendRequest(ctx, http.MethodGet, "https://fanyi.baidu.com", nil, func(req *http.Request) error {
 		addCookies(req, cookies)
 		addCookies(req, fanyiCookies)
 		return nil
 	})
 	if err != nil {
-		err = fmt.Errorf("SendRequest error: %v", err)
+		resp.Err = fmt.Errorf("SendRequest error: %v", err)
 		return
 	}
 

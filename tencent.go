@@ -27,7 +27,7 @@ func TencentTranslate(ctx context.Context, req Request) *Response {
 func (t *tencentTranslator) translate(ctx context.Context, req Request) (resp *Response) {
 	resp = newResp(t)
 
-	_, data, err := sendRequest(ctx, "POST", "https://fanyi.qq.com/api/reauth1232f", nil, nil)
+	_, data, err := sendRequest(ctx, "POST", "https://fanyi.qq.com/api/reauth12f", nil, nil)
 	if err != nil {
 		resp.Err = err
 		return
@@ -52,7 +52,8 @@ func (t *tencentTranslator) translate(ctx context.Context, req Request) (resp *R
 	urlStr := "https://fanyi.qq.com/api/translate"
 	body := strings.NewReader(param.Encode())
 	_, data, err = sendRequest(ctx, "POST", urlStr, body, func(req *http.Request) error {
-		req.Header.Set("Origin", "http://fanyi.qq.com")
+		req.Header.Set("Origin", "https://fanyi.qq.com")
+		req.Header.Set("uc", "qEcP9NeHbGbSxJMTi6uKB7KximMaJOZIM0yohxonQs8=")
 		req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X x.y; rv:42.0) Gecko/20100101 Firefox/42.0")
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
 		return nil

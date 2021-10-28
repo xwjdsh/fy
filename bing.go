@@ -26,12 +26,18 @@ func BingTranslate(ctx context.Context, req Request) *Response {
 func (b *bingTranslator) translate(ctx context.Context, req Request) (resp *Response) {
 	resp = newResp(b)
 
-	_, data, err := sendRequest(ctx, http.MethodGet, "https://cn.bing.com/translator", nil, nil)
+	r, data, err := sendRequest(ctx, http.MethodGet, "https://www.bing.com/translator", nil, nil)
 	if err != nil {
 		resp.Err = fmt.Errorf("readResp error: %v", err)
 		return
 	}
 	timestamp, token, err := b.getTimestampAndToken(string(data))
+	if err != nil {
+		resp.Err = err
+		return
+	}
+
+	igValue, err := b.getIGValue(string(data))
 	if err != nil {
 		resp.Err = err
 		return
@@ -46,11 +52,12 @@ func (b *bingTranslator) translate(ctx context.Context, req Request) (resp *Resp
 		"token":    {token},
 	}
 
-	urlStr := "https://cn.bing.com/ttranslatev3"
+	urlStr := fmt.Sprintf("https://www.bing.com/ttranslatev3?isVertical=1&IG=%s&IID=translator.5023.1", igValue)
 	body := strings.NewReader(param.Encode())
 	_, data, err = sendRequest(ctx, "POST", urlStr, body, func(req *http.Request) error {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		req.Header.Set("User-Agent", UserAgent)
+		addCookies(req, r.Cookies())
 		return nil
 	})
 	if err != nil {
@@ -78,10 +85,19 @@ func (b *bingTranslator) convertLanguage(language string) string {
 
 func (*bingTranslator) getTimestampAndToken(dataStr string) (string, string, error) {
 	// dataStr := `var params_RichTranslateHelper = [1623165977131,"Q5b9PD_0XEdOagXBcPVtlnB6ZML4958D",3600000,true];`
-	result := regexp.MustCompile(`var params_RichTranslateHelper = \[(?P<result>[\s\S]+),"(?P<result1>[\s\S]+)",3600000,true\]`).FindStringSubmatch(dataStr)
+	result := regexp.MustCompile(`var params_RichTranslateHelper = \[(?P<result>[\s\S]+),"(?P<result1>[\s\S]+)",3600000,true,false\]`).FindStringSubmatch(dataStr)
 	if len(result) != 3 {
 		return "", "", fmt.Errorf("cannot get timestamp and token")
 	}
 
 	return result[1], result[2], nil
+}
+
+func (*bingTranslator) getIGValue(dataStr string) (string, error) {
+	// IG:"678CAA0BB18740F3A5D3EF29A6D434B0"
+	igResult := regexp.MustCompile(`IG:"(?P<token>\S+)",`).FindStringSubmatch(dataStr)
+	if len(igResult) != 2 {
+		return "", fmt.Errorf("cannot get ig value")
+	}
+	return igResult[1], nil
 }

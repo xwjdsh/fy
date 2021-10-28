@@ -42,7 +42,7 @@ func (y *youdaoTranslator) translate(ctx context.Context, req Request) (resp *Re
 	// o = u.md5(S + n + r + D);
 	salt := fmt.Sprintf("%d", int(time.Now().UnixNano()/1000000)+rand.Intn(10))
 	h := md5.New()
-	h.Write([]byte("fanyideskweb" + req.Text + salt + `97_3(jkMYg@T[KZQmqjTK`))
+	h.Write([]byte("fanyideskweb" + req.Text + salt + `Y2FYu%TNSbMCxc3t2u^XT`))
 	sign := hex.EncodeToString(h.Sum(nil))
 
 	req.ToLang = y.convertLanguage(req.ToLang)
