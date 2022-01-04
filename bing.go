@@ -85,7 +85,7 @@ func (b *bingTranslator) convertLanguage(language string) string {
 
 func (*bingTranslator) getTimestampAndToken(dataStr string) (string, string, error) {
 	// dataStr := `var params_RichTranslateHelper = [1623165977131,"Q5b9PD_0XEdOagXBcPVtlnB6ZML4958D",3600000,true];`
-	result := regexp.MustCompile(`var params_RichTranslateHelper = \[(?P<result>[\s\S]+),"(?P<result1>[\s\S]+)",3600000,true,false\]`).FindStringSubmatch(dataStr)
+	result := regexp.MustCompile(`var params_RichTranslateHelper = \[(?P<result>[\s\S]+),"(?P<result1>[\s\S]+)",3600000,`).FindStringSubmatch(dataStr)
 	if len(result) != 3 {
 		return "", "", fmt.Errorf("cannot get timestamp and token")
 	}
