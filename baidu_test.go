@@ -15,7 +15,7 @@ func TestBaiduTranslate(t *testing.T) {
 		})
 		assert.Nil(t, resp.Err)
 		expectedResp := newResp(baidu)
-		expectedResp.Result = "测试"
+		expectedResp.Result = "测验"
 		assert.Equal(t, expectedResp, resp)
 	}
 
