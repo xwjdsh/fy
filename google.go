@@ -13,7 +13,7 @@ type googleTranslator struct{}
 
 var google translator = new(googleTranslator)
 
-func (*googleTranslator) desc() (string, string) {
+func (*googleTranslator) Desc() (string, string) {
 	return "google", "https://translate.google.cn/"
 }
 

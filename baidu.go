@@ -16,7 +16,7 @@ type baiduTranslator struct{}
 
 var baidu translator = new(baiduTranslator)
 
-func (*baiduTranslator) desc() (string, string) {
+func (*baiduTranslator) Desc() (string, string) {
 	return "baidu", "https://fanyi.baidu.com/"
 }
 

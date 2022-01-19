@@ -37,17 +37,17 @@ Download it from [releases](https://github.com/xwjdsh/fy/releases), and extact i
 
 ## Usage
 ```
-Usage of fy:
-  -d    Debug mode, if an error occurs in the translation, the error message is displayed
-  -e string
-        Select translators except these, comma separated. eg 'bd,gg', it can also be set by the 'FY_EXCEPT' environment variable
+Usage of ./fy:
+  -d    Debug mode, if an error occurs during translation, the error message will be displayed as the translation result
   -f string
-        file path
-  -o string
-        Select only the translators, comma separated. eg 'bd,gg', it can also be set by the 'FY_ONLY' environment variable
-  -s    Display translators information
+        File path
+  -s    Display translator sources
   -t string
-        The target language of translation
+        The target language of the translation
+  -timeout duration
+        The timeout for each translator (default 5s)
+  -translator string
+        Restrict the translators used, comma separated. eg 'baidu,google'
 ```
 
 ### Language Mapping
@@ -91,13 +91,8 @@ cat `test.txt` | fy
 fy < test.txt
 fy -f test.txt
 
-# select translators except these
-FY_EXCEPT='bd,sg' fy test
-fy -e 'bd,sg' test
-
 # select only the translators
-FY_ONLY='gg,qq' fy test
-fy -o 'gg,qq' test
+fy -translator 'baidu,google' test
 ```
 
 ## Licence

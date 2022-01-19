@@ -16,7 +16,7 @@ type tencentTranslator struct{}
 
 var tencent translator = new(tencentTranslator)
 
-func (t *tencentTranslator) desc() (string, string) {
+func (t *tencentTranslator) Desc() (string, string) {
 	return "tencent", "https://fanyi.qq.com/"
 }
 

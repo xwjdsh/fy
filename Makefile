@@ -1,5 +1,5 @@
 test:
-	go test . ./bd ./by ./gg ./qq ./sg ./yd
+	go test
 
 build:
 	go build ./cmd/fy

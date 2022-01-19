@@ -37,17 +37,17 @@ alias fy='docker run -t --rm wendellsun/fy'
 
 ## 使用
 ```
-Usage of fy:
-  -d    调试模式，如果翻译过程出现错误，会将错误信息作为翻译结果展示
-  -e string
-        选择除了指定以外的翻译者, 逗号分隔, 例如 'bd,gg', 也可以通过 'FY_EXCEPT' 环境变量来配置
+Usage of ./fy:
+  -d    Debug mode, if an error occurs during translation, the error message will be displayed as the translation result
   -f string
-        翻译文件的路径
-  -o string
-        选择指定的翻译者, 逗号分隔, 例如 'bd,gg', 也可以通过 'FY_ONLY' 环境变量来配置
-  -s    显示支持的翻译者的信息
-  -t string   
-        指定翻译的目标语言
+        File path
+  -s    Display translator sources
+  -t string
+        The target language of the translation
+  -timeout duration
+        The timeout for each translator (default 5s)
+  -translator string
+        Restrict the translators used, comma separated. eg 'baidu,google'
 ```
 
 ### 语言映射
@@ -91,13 +91,8 @@ cat `test.txt` | fy
 fy < test.txt
 fy -f test.txt
 
-# 选择除了指定以外的翻译者
-FY_EXCEPT='bd,sg' fy test
-fy -e 'bd,sg' test
-
 # 选择指定的翻译者
-FY_ONLY='gg,qq' fy test
-fy -o 'gg,qq' test
+fy -translator 'baidu,google' test
 ```
 
 ## 协议

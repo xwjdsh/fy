@@ -19,7 +19,7 @@ const (
 	UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"
 )
 
-var translators = []translator{
+var Translators = []translator{
 	baidu, bing, google, sogou, tencent, youdao,
 }
 
@@ -46,7 +46,7 @@ type Response struct {
 }
 
 func newResp(t translator) *Response {
-	name, homepage := t.desc()
+	name, homepage := t.Desc()
 	return &Response{
 		Name:     name,
 		Homepage: homepage,
@@ -54,7 +54,7 @@ func newResp(t translator) *Response {
 }
 
 type translator interface {
-	desc() (name string, source string)
+	Desc() (name string, source string)
 	translate(context.Context, Request) *Response
 }
 
@@ -69,8 +69,8 @@ func AsyncTranslate(eachTranslatorTimeout time.Duration, req *Request, ts ...str
 
 	wg := sync.WaitGroup{}
 	ch := make(chan *Response)
-	for _, t := range translators {
-		name, _ := t.desc()
+	for _, t := range Translators {
+		name, _ := t.Desc()
 		if limitMap != nil && !limitMap[name] {
 			continue
 		}

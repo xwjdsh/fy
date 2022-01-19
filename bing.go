@@ -15,7 +15,7 @@ type bingTranslator struct{}
 
 var bing translator = new(bingTranslator)
 
-func (b *bingTranslator) desc() (string, string) {
+func (b *bingTranslator) Desc() (string, string) {
 	return "bing", "https://cn.bing.com/translator"
 }
 

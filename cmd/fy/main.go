@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"strings"
 	"time"
 
@@ -11,7 +13,7 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/fatih/color"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 const (
@@ -34,6 +36,7 @@ var (
 	isDebug    = flag.Bool("d", false, "Debug mode, if an error occurs during translation, the error message will be displayed as the translation result")
 	filePath   = flag.String("f", "", "File path")
 	targetLang = flag.String("t", "", "The target language of the translation")
+	sources    = flag.Bool("s", false, "Display translator sources")
 
 	translator = flag.String("translator", "", "Restrict the translators used, comma separated. eg 'baidu,google'")
 	timeout    = flag.Duration("timeout", 5*time.Second, "The timeout for each translator")
@@ -41,6 +44,16 @@ var (
 
 func main() {
 	flag.Parse()
+	if *sources {
+		color.Green(logo)
+		fmt.Println()
+		for _, t := range fy.Translators {
+			name, source := t.Desc()
+			fmt.Printf("\t %-20s%s\n", name, source)
+		}
+		fmt.Println()
+		return
+	}
 
 	text, err := getText()
 	if err != nil {
@@ -87,7 +100,7 @@ func getText() (string, error) {
 			return "", err
 		}
 		text = string(data)
-	} else if !terminal.IsTerminal(0) {
+	} else if runtime.GOOS != "windows" && !term.IsTerminal(0) {
 		data, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			return "", err

@@ -15,7 +15,7 @@ type sogouTranslator struct{}
 
 var sogou translator = new(sogouTranslator)
 
-func (s *sogouTranslator) desc() (string, string) {
+func (s *sogouTranslator) Desc() (string, string) {
 	return "sogou", "https://fanyi.sogou.com"
 }
 
