@@ -18,6 +18,10 @@
 `fy`是一个命令行下的翻译工具。
 
 ![](https://raw.githubusercontent.com/xwjdsh/fy/master/screenshot/fy.gif)
+
+## 声明
+本项目仅出于学习目的编写，获取跟共享的行为或许有侵犯权益的嫌疑。请您了解相关情况，如果侵犯了您的权益，请与我联系，我会及时删除。
+
 ## 安装
 ### Homebrew
 ```
