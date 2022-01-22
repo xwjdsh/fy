@@ -7,27 +7,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTencentTranslate(t *testing.T) {
+func TestDeeplTranslate(t *testing.T) {
 	{
-		resp := TencentTranslate(context.Background(), Request{
+		resp := DeeplTranslate(context.Background(), Request{
 			ToLang: Chinese,
 			Text:   "test",
 		})
 		assert.Nil(t, resp.Err)
-		expectedResp := newResp(tencent)
-		expectedResp.Result = "试验"
+		expectedResp := newResp(deepl)
+		expectedResp.Result = "测试"
 		assert.Equal(t, expectedResp, resp)
 	}
 
 	{
-		resp := TencentTranslate(context.Background(), Request{
+		resp := DeeplTranslate(context.Background(), Request{
 			ToLang: English,
 			Text:   "测试",
 		})
 		assert.Nil(t, resp.Err)
-		expectedResp := newResp(tencent)
-		expectedResp.Result = "test"
+		expectedResp := newResp(deepl)
+		expectedResp.Result = "test (machinery etc)"
 		assert.Equal(t, expectedResp, resp)
 	}
-
 }
