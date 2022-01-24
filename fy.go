@@ -20,7 +20,7 @@ const (
 )
 
 var Translators = []translator{
-	baidu, bing, google, sogou, tencent, youdao, deepl,
+	baidu, bing, google, sogou, tencent, youdao, deepl, caiyun,
 }
 
 // Request translation request

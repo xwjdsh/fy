@@ -52,7 +52,7 @@ func (t *deeplTranslator) translate(ctx context.Context, req Request) (resp *Res
 }
 
 func (*deeplTranslator) convertLanguage(language string) (string, error) {
-	l := language
+	var l string
 	switch language {
 	case Chinese:
 		l = "ZH"
@@ -70,7 +70,7 @@ func (*deeplTranslator) convertLanguage(language string) (string, error) {
 		l = "ES"
 	}
 	if l == "" {
-		fmt.Println("unsupported target language")
+		return "", fmt.Errorf("unsupported target language: %s", language)
 	}
 
 	return l, nil
