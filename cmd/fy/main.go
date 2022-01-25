@@ -100,18 +100,18 @@ func getText() (string, error) {
 			return "", err
 		}
 		text = string(data)
+	} else if args := flag.Args(); len(args) > 0 {
+		text = strings.Join(args, " ")
 	} else if runtime.GOOS != "windows" && !term.IsTerminal(0) {
 		data, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			return "", err
 		}
 		text = string(data)
-	} else {
-		args := flag.Args()
-		if len(os.Args) == 1 || len(args) == 0 {
-			return clipboard.ReadAll()
-		}
-		text = strings.Join(args, " ")
+	}
+
+	if text == "" {
+		return clipboard.ReadAll()
 	}
 	return text, nil
 }

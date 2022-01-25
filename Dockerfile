@@ -1,10 +1,10 @@
-FROM golang:1.10 as builder
+FROM golang:1.17.6-alpine3.15 as builder
 ARG VERSION
 WORKDIR /go/src/github.com/xwjdsh/fy
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags "-X main.version=${VERSION}" -o fy ./cmd/fy 
+RUN go build ./cmd/fy
 
-FROM alpine:latest  
+FROM alpine:3.15.0
 LABEL maintainer="iwendellsun@gmail.com"
 RUN apk --no-cache add ca-certificates
 WORKDIR /
