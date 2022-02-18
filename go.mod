@@ -7,7 +7,7 @@ require (
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.7 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/gjson v1.14.0
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
