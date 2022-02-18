@@ -1,9 +1,9 @@
 module github.com/xwjdsh/fy
 
 require (
-	github.com/atotto/clipboard v0.1.2
+	github.com/atotto/clipboard v0.1.4
 	github.com/fatih/color v1.7.0
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.3.0
 	github.com/mattn/go-colorable v0.1.1 // indirect
 	github.com/mattn/go-isatty v0.0.7 // indirect
 	github.com/robertkrimen/otto v0.0.0-20180617131154-15f95af6e78d
