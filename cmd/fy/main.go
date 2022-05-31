@@ -40,7 +40,12 @@ var (
 
 	translator = flag.String("translator", "", "Restrict the translators used, comma separated. eg 'baidu,google'")
 	timeout    = flag.Duration("timeout", 5*time.Second, "The timeout for each translator")
+	plain      = flag.Bool("plain", false, "Plain output, do not print source")
 )
+
+func init() {
+	flag.BoolVar(plain, "p", *plain, "alias for -quiet")
+}
 
 func main() {
 	flag.Parse()
@@ -87,8 +92,13 @@ func main() {
 			}
 			resp.Result = resp.Err.Error()
 		}
-		color.Green("\t%s  [%s]\n\n", coffeeEmoji, resp.Name)
-		color.Magenta("\t\t%s\n\n", resp.Result)
+
+		if *plain {
+			fmt.Println(resp.Result)
+		} else {
+			color.Green("\t%s  [%s]\n\n", coffeeEmoji, resp.Name)
+			color.Magenta("\t\t%s\n\n", resp.Result)
+		}
 	}
 }
 
